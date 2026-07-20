@@ -1,0 +1,33 @@
+{
+  "name": "secureshare",
+  "version": "1.0.0",
+  "description": "Authenticated file upload with anonymized 7 day download links, Defender malware scanning, Azure Blob Storage",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.5.0",
+    "@azure/msal-node": "^5.4.0",
+    "@azure/storage-blob": "^12.26.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "memorystore": "^1.6.7",
+    "multer": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/express-session": "^1.18.0",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^20.16.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

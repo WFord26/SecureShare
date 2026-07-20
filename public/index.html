@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureShare</title>
+  <style>
+    :root { --accent: #0f6cbd; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; margin: 0; min-height: 100vh;
+           display: flex; align-items: center; justify-content: center; }
+    main { background: #fff; padding: 2.5rem; border-radius: 12px; width: 100%; max-width: 520px;
+           box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    h1 { margin-top: 0; font-size: 1.4rem; }
+    #user { color: #666; font-size: .85rem; margin-bottom: 1.5rem; }
+    #drop { border: 2px dashed #bbb; border-radius: 10px; padding: 2.5rem 1rem; text-align: center;
+            color: #666; cursor: pointer; transition: border-color .15s, background .15s; }
+    #drop.over { border-color: var(--accent); background: #eef6fd; }
+    #result { margin-top: 1.25rem; display: none; }
+    .linkbox { display: flex; gap: .5rem; margin-top: .5rem; }
+    .linkbox input { flex: 1; padding: .55rem; border: 1px solid #ccc; border-radius: 8px; font-size: .85rem; }
+    button { background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+             padding: .55rem 1rem; cursor: pointer; font-size: .9rem; }
+    button:hover { filter: brightness(1.1); }
+    .note { font-size: .8rem; color: #888; margin-top: .75rem; }
+    .err { color: #b00020; margin-top: 1rem; display: none; }
+    progress { width: 100%; margin-top: 1rem; display: none; }
+    form.logout { float: right; margin: 0; }
+    form.logout button { background: none; border: 0; color: var(--accent); cursor: pointer;
+                         font-size: .8rem; padding: 0; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <form class="logout" method="post" action="/auth/logout"><button type="submit">Sign out</button></form>
+    <h1>SecureShare</h1>
+    <div id="user"></div>
+    <div id="drop">Drop a file here or click to choose<br><small>Links expire after 7 days</small></div>
+    <input type="file" id="file" hidden>
+    <progress id="prog" max="100" value="0"></progress>
+    <div class="err" id="err"></div>
+    <div id="result">
+      <strong id="fname"></strong>
+      <div class="linkbox">
+        <input id="link" readonly>
+        <button id="copy">Copy</button>
+      </div>
+      <div class="note" id="note"></div>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
