@@ -151,6 +151,21 @@ brew install azure-cli
 
 The account you sign in with needs Owner on the subscription (or Contributor plus User Access Administrator, for the role assignments) and, for the Entra steps, Cloud Application Administrator or Application Administrator in the tenant.
 
+### Check tenant readiness
+
+After filling in `infra/deploy.env` and running `az login`, run the read-only preflight:
+
+```powershell
+pwsh infra/check-readiness.ps1
+pwsh infra/check-readiness.ps1 -EnvFile infra/deploy.env -Json
+```
+
+It checks configuration, the active cloud and tenant, subscription state, caller permissions for deployment, resource provider registration, region names, and app registration metadata. It never switches the CLI subscription, registers providers, changes Azure resources, or prints secrets. `SUBSCRIPTION` selects the subscription to inspect without changing the CLI default.
+
+Use `-EntraOnly` in the identity tenant/cloud session for separately managed identity, or `-SkipEntra` for infrastructure with existing `CLIENT_ID` and `CLIENT_SECRET`. Like deployment, this requires PowerShell 7.2+ and Azure CLI. Exit codes are **0** for passing checks, **1** for failures, and **2** for warnings or checks requiring manual verification. JSON contains the same checks and exit code.
+
+This is a pre-deployment assessment. It deliberately reports warnings for matters it cannot prove without writes, including Entra administration/consent permissions and deployment policy, quotas, capacity, and Defender regional availability. Permission checks inspect the ARM [caller permissions API](https://learn.microsoft.com/en-us/rest/api/authorization/permissions/list-for-resource-group?view=rest-authorization-2022-04-01); they do not establish that every nested template operation will succeed. An existing secret's metadata cannot verify the configured secret value. Resolve failures, review warnings, then use `deploy.ps1 -Preview` and the test plan below to validate deployment and application behavior.
+
 ### Deploy
 
 ```bash

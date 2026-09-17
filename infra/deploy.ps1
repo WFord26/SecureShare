@@ -153,6 +153,13 @@ function Invoke-AzLive([string[]]$Arguments) {
 function Invoke-Graph {
     param([string]$Method = 'GET', [Parameter(Mandatory)][string]$Path, $Body, [switch]$AllowFailure)
     $url = if ($Path.StartsWith('https://')) { $Path } else { $script:GraphRoot + $Path }
+    # Windows Azure CLI uses az.cmd. Preserve quotes through PowerShell so
+    # cmd.exe does not treat a query-string ampersand as a command separator.
+    # Apply only to batch launchers; native executables and Unix need the raw URL.
+    $azCommand = Get-Command az -ErrorAction Stop
+    if ($IsWindows -and $azCommand.Path -match '\.(cmd|bat)$') {
+        $url = '"' + $url.Replace('"', '%22') + '"'
+    }
     $arguments = @('rest', '--method', $Method, '--url', $url)
     $bodyFile = $null
     if ($null -ne $Body) {
@@ -473,8 +480,20 @@ function Add-RoleAssignment([string]$RoleValue, [string]$List, $Assignments) {
     }
 }
 
+function Get-ValidatedBaseUrl([string]$AppUrl) {
+    $AppUrl = $AppUrl.Trim().TrimEnd('/')
+    $parsedUrl = $null
+    if (-not [uri]::TryCreate($AppUrl, [UriKind]::Absolute, [ref]$parsedUrl) -or
+        $parsedUrl.Scheme -ne 'https' -or -not $parsedUrl.Host -or
+        $parsedUrl.UserInfo -or $parsedUrl.Query -or $parsedUrl.Fragment -or $AppUrl -match '\s') {
+        throw 'The deployment base URL must be an absolute HTTPS URL without credentials, whitespace, a query or a fragment. Check BASE_URL in deploy.env and the deployment baseUrl output.'
+    }
+    return $AppUrl
+}
+
 # Redirect URIs and home page (My Apps tile) once the public URL is known
 function Update-EntraAppUrls([string]$AppUrl) {
+    $AppUrl = Get-ValidatedBaseUrl $AppUrl
     Write-Step "Redirect URIs on app registration $script:AppId"
     $app = Invoke-Graph -Path "/applications/$($script:AppObjectId)?`$select=web"
     $uris = [Collections.Generic.List[string]]::new()
@@ -483,13 +502,15 @@ function Update-EntraAppUrls([string]$AppUrl) {
     foreach ($u in @("$AppUrl/auth/callback", "$AppUrl/")) {
         if ($u -notin $uris) { $uris.Add($u); $added += $u }
     }
-    # Send the whole web object back so logout URL and implicit grant settings are kept
+    # PATCH only the fields we manage. Replaying the GET response can send
+    # server metadata or unsupported fields; omitted settings retain their values.
     $web = [ordered]@{}
-    foreach ($p in $app.web.PSObject.Properties) { if ($p.Name -ne 'redirectUriSettings') { $web[$p.Name] = $p.Value } }
-    $web['redirectUris'] = $uris.ToArray()
+    if ($added.Count -gt 0) { $web['redirectUris'] = $uris.ToArray() }
     $homeChanged = -not $app.web.homePageUrl
     if ($homeChanged) { $web['homePageUrl'] = $AppUrl }
     if ($added.Count -gt 0 -or $homeChanged) {
+        Write-Note "Public URL: $AppUrl"
+        Write-Note "Redirect URIs: $AppUrl/auth/callback, $AppUrl/"
         Invoke-Graph -Method PATCH -Path "/applications/$($script:AppObjectId)" -Body @{ web = $web } | Out-Null
     }
     foreach ($u in $added) { Write-Note "Added $u" }
@@ -569,6 +590,7 @@ if (-not (Test-Path -LiteralPath $EnvFile)) {
 $EnvFile = (Resolve-Path -LiteralPath $EnvFile).Path
 
 $script:Cfg = Read-EnvFile $EnvFile
+if (Get-Cfg 'BASE_URL') { $script:Cfg['BASE_URL'] = Get-ValidatedBaseUrl (Get-Cfg 'BASE_URL') }
 foreach ($key in @($script:Cfg.Keys)) { Set-Cfg $key $script:Cfg[$key] }
 
 $tenantId = Get-Cfg 'TENANT_ID'
