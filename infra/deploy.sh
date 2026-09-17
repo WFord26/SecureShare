@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # SecureShare: deploy infrastructure (Bicep) and the app (zip deploy with server side build).
+# deploy.ps1 (PowerShell 7) does the same and also manages the Entra enterprise application; see README.
 #
 #   cp infra/deploy.env.example infra/deploy.env   # fill in
 #   bash infra/deploy.sh                          # full deploy

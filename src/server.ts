@@ -92,6 +92,14 @@ app.get("/app.js", requireAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "app.js"));
 });
 
+// Theme resolution (light/dark). PUBLIC on purpose: index.html, admin.html and the anonymous
+// status pages from html.ts all load it in <head>. It contains no data. Without this route the
+// dark mode switch does nothing and the page falls back to the system theme only.
+app.get("/theme.js", (_req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.sendFile(path.join(__dirname, "..", "public", "theme.js"));
+});
+
 app.get("/api/me", requireAuthApi, (req, res) => {
   res.json({ ...req.session.user, linkTtlDays: config.linkTtlDays, auditor: isAuditor(req.session.user) });
 });

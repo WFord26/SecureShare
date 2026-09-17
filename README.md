@@ -3,7 +3,7 @@
 Authenticated file uploads with anonymized public download links.
 
 * Uploaders sign in with Entra ID (OAuth 2.0 / OIDC, auth code flow with PKCE). Default is a global / US commercial tenant; Azure China (21Vianet) and US Government tenants are supported by changing one setting
-* One command deployment to Azure App Service with Bicep (`infra/deploy.sh`)
+* One command deployment to Azure App Service with Bicep, including the Entra app registration and enterprise application (`infra/deploy.ps1`, PowerShell 7 on macOS, Linux or Windows; `infra/deploy.sh` for bash)
 * Each upload gets an unguessable link anyone can use to download (256 bit random token)
 * Links stop working after 7 days and files are deleted by a storage lifecycle policy
 * Every file is scanned by Microsoft Defender for Storage on upload; by default downloads are blocked until the scan finds no threats, and flagged files are deleted
@@ -32,9 +32,11 @@ RG=rg-secureshare LOCATION=westus3 bash setup.sh
 
 Creates the resource group, storage account (public access disabled, HTTPS only, TLS 1.2 minimum), private container, 7 day lifecycle delete policy, and enables Defender for Storage with on upload malware scanning. Note the storage account name and resource ID it prints.
 
-Defender for Storage malware scanning is billed per GB scanned (capped at 500 GB/month by default, `SCAN_CAP_GB`) plus the per storage account Defender charge. Enablement can take a few minutes to become active. Malware scanning silently stays off unless the `Microsoft.EventGrid` provider is registered in the subscription (it creates an Event Grid system topic beside the storage account); both scripts register it.
+Defender for Storage malware scanning is billed per GB scanned (capped at 500 GB/month by default, `SCAN_CAP_GB`) plus the per storage account Defender charge. Enablement can take a few minutes to become active. Malware scanning silently stays off unless the `Microsoft.EventGrid` provider is registered in the subscription (it creates an Event Grid system topic beside the storage account); `setup.sh` and both deploy scripts register it.
 
 ### 2. Entra ID app registration
+
+For an App Service deployment, `infra/deploy.ps1` creates and configures the registration, its enterprise application, app roles and assignments for you (see [Enterprise application](#enterprise-application)). The manual steps below are for local development or other hosts.
 
 #### Global / US commercial tenant (default)
 
@@ -138,33 +140,95 @@ On startup the app logs whether it can reach the container and which authority i
 
 Everything in Azure is defined in [infra/main.bicep](infra/main.bicep): storage account (keys disabled, HTTPS only, TLS 1.2), private container, lifecycle delete policy, Defender for Storage malware scanning, a Linux App Service plan, the web app with a system assigned managed identity, app settings, logging, the activity log tables, and the Storage Blob Data Owner and Storage Table Data Contributor role assignments. This replaces steps 1 and 3 above for a cloud deployment.
 
+### Prerequisites
+
+`infra/deploy.ps1` needs PowerShell 7.2 or later and the Azure CLI. It runs on macOS, Linux and Windows and needs nothing else (no Python, zip or bash). On a Mac:
+
 ```bash
-cp infra/deploy.env.example infra/deploy.env   # fill in tenant, client ID, client secret
+brew install --cask powershell
+brew install azure-cli
+```
+
+The account you sign in with needs Owner on the subscription (or Contributor plus User Access Administrator, for the role assignments) and, for the Entra steps, Cloud Application Administrator or Application Administrator in the tenant.
+
+### Deploy
+
+```bash
+cp infra/deploy.env.example infra/deploy.env   # fill in RG, LOCATION, TENANT_ID, APP_USERS, AUDIT_USERS
 az login
-bash infra/deploy.sh
+pwsh infra/deploy.ps1
 ```
 
-The script creates the resource group, deploys the Bicep template, zips the source and pushes it with `az webapp deploy`, and App Service builds it (npm install, npm run build). It generates `SESSION_SECRET` on first run and writes it back to `deploy.env` so later deploys keep sessions valid. Secrets are passed through environment variables, never on the command line.
+In order, the script:
 
-Flags: `--infra-only` deploys only the Bicep template; `--app-only` pushes only the code to an existing deployment.
+1. **Entra** (when `UPDATE_APP_REG=true`): finds or creates the app registration, adds the `Files.Upload` and `Audit.Read` app roles and the sign in permissions, creates a client secret if `CLIENT_SECRET` is empty, creates the enterprise application, assigns `APP_USERS` and `AUDIT_USERS`, turns on "Assignment required", and grants admin consent. See [Enterprise application](#enterprise-application)
+2. **Infrastructure**: registers the resource providers, creates the resource group, deploys `main.bicep`
+3. **Redirect URIs**: adds `BASE_URL/auth/callback` and `BASE_URL/` (and the home page used by the My Apps tile) to the app registration once the web app's URL is known
+4. **App**: zips the source and pushes it with `az webapp deploy`; App Service builds it (npm install, npm run build)
 
-To adopt resources that already exist (an earlier manual deployment), set their names in `deploy.env`: `WEB_APP_NAME`, `APP_SERVICE_PLAN`, `STORAGE_ACCOUNT`, and `STORAGE_LOCATION` / `APP_LOCATION` if they live in different regions. The template then updates them in place instead of creating new ones. Preview the exact changes first with a what-if (read only):
+Generated values (`CLIENT_ID` for a new registration, `CLIENT_SECRET`, `SESSION_SECRET`) are written back to `deploy.env`, so later deploys reuse them and sessions stay valid. The file is set to mode 600. Secrets travel through environment variables and temp files, never on a command line. Every step is safe to repeat. At the end the script prints the URL, next steps, and any warnings again.
+
+| Switch | Does |
+|---|---|
+| (none) | Entra, infrastructure and app |
+| `-Preview` | Read only what-if of the Bicep deployment; changes nothing |
+| `-InfraOnly` | Entra and infrastructure, no code push |
+| `-AppOnly` | Code push to an existing deployment only |
+| `-EntraOnly` | App registration and enterprise application only |
+| `-SkipEntra` | Everything except Entra, even with `UPDATE_APP_REG=true` |
+| `-EnvFile <path>` | Use another settings file (default `infra/deploy.env`) |
+
+To adopt resources that already exist (an earlier manual deployment), set their names in `deploy.env`: `WEB_APP_NAME`, `APP_SERVICE_PLAN`, `STORAGE_ACCOUNT`, and `STORAGE_LOCATION` / `APP_LOCATION` if they live in different regions. The template then updates them in place instead of creating new ones. If the web app identity already holds a storage role from a manual setup, set `CREATE_ROLE_ASSIGNMENT=false` or `CREATE_TABLE_ROLE_ASSIGNMENT=false`, because ARM rejects a duplicate assignment. Preview the exact changes first:
 
 ```bash
-set -a; source infra/deploy.env; set +a; az deployment group what-if -g "$RG" --parameters infra/main.bicepparam
+pwsh infra/deploy.ps1 -Preview
 ```
 
-New App Service apps get a unique default hostname, so the script prints the final URL and the two redirect URIs after it finishes. Add both to the app registration, or set `UPDATE_APP_REG=true` in `deploy.env` to have the script add them (the CLI must be logged into the tenant that owns the registration; this does not work across the China cloud boundary). For a custom domain, set `BASE_URL` in `deploy.env` and bind the domain to the web app.
+New App Service apps get a unique default hostname. With `UPDATE_APP_REG=false` the script prints the two redirect URIs to add to the registration yourself. For a custom domain, set `BASE_URL` in `deploy.env` and bind the domain to the web app.
 
-Checklist before testing:
+`infra/deploy.sh` is the bash version of the same deployment (`--infra-only`, `--app-only`). It reads the same `deploy.env` but manages less in Entra: it adds redirect URIs, creates the `AUDIT_ROLE` app role and assigns `AUDIT_USERS`. It does not create registrations or secrets, add the `Files.Upload` role, assign `APP_USERS` or groups, set "Assignment required", or grant consent. It needs `CLIENT_ID` and `CLIENT_SECRET` filled in, plus python3 and zip.
+
+### Enterprise application
+
+An Entra app has two halves. The **app registration** holds the redirect URIs, app roles and client secret. The **enterprise application** (service principal) is the tenant's instance of it and controls who may sign in. `deploy.ps1` configures both from `deploy.env`:
+
+| Setting | Effect |
+|---|---|
+| `UPDATE_APP_REG` | `true` turns all of this on. The CLI must be logged into the tenant that owns the registration; otherwise the script warns and skips it |
+| `CLIENT_ID` / `APP_REG_NAME` | Use the registration with this client ID. If empty, use the registration named `APP_REG_NAME` (default `SecureShare`), or create it: single tenant for a tenant GUID, multi tenant for `organizations`. More than one registration with that name is an error |
+| `CLIENT_SECRET` / `CLIENT_SECRET_MONTHS` | If empty, a secret valid `CLIENT_SECRET_MONTHS` (default 12) is created. If set, the script checks that it belongs to the registration and warns 30 days before it expires. To rotate, clear it and run again, then delete the old secret in the portal |
+| `ASSIGNMENT_REQUIRED` | `true`: only assigned users and groups can sign in; everyone else gets an Entra error before reaching the app. `false`: everyone in the tenant, guests included. Empty: leave the current setting. It is never turned on while nobody is assigned |
+| `APP_USERS` | Assigned the `Files.Upload` role (sign in and upload) |
+| `AUDIT_USERS` | Assigned the `Audit.Read` role (`AUDIT_ROLE`): the [activity log](#activity-log). With assignment required, this also lets them sign in |
+| `GRANT_ADMIN_CONSENT` | `true` grants tenant wide consent for `openid profile email offline_access`, so users see no consent prompt and tenants that block user consent still work |
+
+`APP_USERS` and `AUDIT_USERS` take comma separated sign in names (guests by their own email address), group display names, or object IDs. Groups need Microsoft Entra ID P1 or P2, and members of nested groups are not included. Assignments are only ever added: to remove someone, open Enterprise applications → the app → Users and groups. Roles are read from the ID token, so changes take effect at the next sign in.
+
+The app itself only checks `Audit.Read`. `Files.Upload` exists because once an app defines roles, a user can only be assigned by picking one, so uploaders need a role to be assigned to.
+
+**Multi tenant** (`TENANT_ID=organizations`): the script configures the registration and the enterprise application in your own tenant, and prints an admin consent link for each other tenant in `ALLOWED_TENANT_IDS`. After consenting, each tenant has its own enterprise application where its admins set "Assignment required" and assign their own users and the `Audit.Read` role.
+
+**Azure China (21Vianet) tenant**: storage and App Service live in the commercial cloud and the registration in the China cloud, and one CLI session cannot reach both. Deploy with `UPDATE_APP_REG=false` (or `-SkipEntra`), then configure Entra from a China cloud session. Set `BASE_URL` first so the redirect URIs can be added:
+
+```bash
+az cloud set --name AzureChinaCloud
+az login --tenant <21Vianet tenant ID>
+pwsh infra/deploy.ps1 -EntraOnly
+az cloud set --name AzureCloud
+```
+
+Doing the same in the portal: Enterprise applications → the app → Properties → Assignment required = Yes; Users and groups → Add user/group → pick a role; Permissions → Grant admin consent.
+
+### Checklist before testing
 
 1. Both `BASE_URL/auth/callback` and `BASE_URL/` are redirect URIs on the app registration
-2. First build takes 2-3 minutes; `az webapp log tail` shows it. The startup log line "Storage OK" confirms the managed identity can reach the container
-3. Do not set `NODE_ENV=production` as an app setting: App Service builds on the server and that flag makes npm skip devDependencies, so the TypeScript compiler would be missing. The app never renders stack traces regardless
-4. Sessions are in process memory: one instance only, and sign ins are lost on restart. Use a session store (Redis) before scaling out
-5. Storage account key access is disabled by default (`ALLOW_SHARED_KEY_ACCESS=false`). To browse blobs in the portal, switch the container view to "Microsoft Entra user account" and give yourself Storage Blob Data Reader
+2. First build takes 2-3 minutes; `az webapp log tail` shows it. The startup log lines "Storage OK" and "Activity log OK" confirm the managed identity can reach the container and the tables
+3. With "Assignment required" on, you are assigned (in `APP_USERS` or `AUDIT_USERS`), or you will be turned away at sign in
+4. Do not set `NODE_ENV=production` as an app setting: App Service builds on the server and that flag makes npm skip devDependencies, so the TypeScript compiler would be missing. The app never renders stack traces regardless
+5. Sessions are in process memory: one instance only, and sign ins are lost on restart. Use a session store (Redis) before scaling out
+6. Storage account key access is disabled by default (`ALLOW_SHARED_KEY_ACCESS=false`). To browse blobs in the portal, switch the container view to "Microsoft Entra user account" and give yourself Storage Blob Data Reader
 
-Manual alternative without Bicep: [infra/setup.sh](infra/setup.sh) creates only the storage side; then `az webapp up --runtime "NODE:22-lts"`, assign the identity, grant the role, and set the app settings listed in the configuration reference.
+Manual alternative without Bicep: [infra/setup.sh](infra/setup.sh) creates only the storage side; then `az webapp up --runtime "NODE:24-lts"`, assign the identity, grant both storage roles, set the app settings listed in the configuration reference, and configure Entra as in setup step 2 and [Enterprise application](#enterprise-application).
 
 ### Test plan
 
@@ -174,7 +238,8 @@ Manual alternative without Bicep: [infra/setup.sh](infra/setup.sh) creates only 
 4. Upload a password protected zip: with the default `required` policy expect "File unavailable"; with `SCAN_POLICY=best-effort` it becomes downloadable after the grace period and the uploads list shows "Ready (not scanned)"
 5. Sign out: you should land back on `BASE_URL`, not a generic Microsoft page. If you see the generic page, `BASE_URL/` is missing from the redirect URIs
 6. Sign in from an account in a tenant that is not allowed: expect "Not authorized"
-7. Open `BASE_URL/admin` with an account that has the `Audit.Read` role: the uploads from steps 2 to 4 are listed with their download counts, and expanding one shows each request with time, IP address and browser. Without the role expect "Not authorized"
+7. With "Assignment required" on, sign in as a user in your tenant who is not assigned: Entra stops them with error AADSTS50105 before they reach the app
+8. Open `BASE_URL/admin` with an account that has the `Audit.Read` role: the uploads from steps 2 to 4 are listed with their download counts, and expanding one shows each request with time, IP address and browser. Without the role expect "Not authorized"
 
 ## Activity log
 
@@ -191,7 +256,7 @@ The link token is never stored. Rows are keyed by a one way hash of it, so neith
 
 **Reporting page.** `BASE_URL/admin` shows totals for a date range, every upload with its download count (click one to see each request for it), all download requests, uploaders, and downloader IP addresses, and exports uploads or downloads as CSV. Uploaders also see a download count under each file on the main page.
 
-**Access.** The page requires the `Audit.Read` app role (`AUDIT_ROLE`). With `UPDATE_APP_REG=true`, `deploy.sh` creates the role on the app registration, and assigns it to everyone in `AUDIT_USERS` (comma separated sign in names). To do it by hand: app registration → App roles → Create app role (allowed member types: Users/Groups, value `Audit.Read`), then Enterprise applications → the app → Users and groups → Add user/group → pick the role. Groups work too on Entra ID P1 and above. Roles are read from the ID token, so a new assignment takes effect at the next sign in; users with the role see an "Activity log" link on the main page. In multi tenant mode each tenant assigns the role in its own enterprise application.
+**Access.** The page requires the `Audit.Read` app role (`AUDIT_ROLE`). With `UPDATE_APP_REG=true`, `deploy.ps1` and `deploy.sh` create the role on the app registration and assign it to everyone in `AUDIT_USERS`: comma separated sign in names, plus group names in `deploy.ps1` (see [Enterprise application](#enterprise-application)). To do it by hand: app registration → App roles → Create app role (allowed member types: Users/Groups, value `Audit.Read`), then Enterprise applications → the app → Users and groups → Add user/group → pick the role. Groups work too on Entra ID P1 and above. Roles are read from the ID token, so a new assignment takes effect at the next sign in; users with the role see an "Activity log" link on the main page. In multi tenant mode each tenant assigns the role in its own enterprise application.
 
 **What "who downloaded" means.** Download links are anonymous, so a recipient is known only by IP address and browser. Several people behind one office network share an address, and a forwarded link looks like the original recipient on a different IP address. Counts need some care too:
 
@@ -216,7 +281,7 @@ For local development the tables are created on startup if they do not exist, us
 * HSTS, nosniff, `X-Frame-Options: DENY`, a CSP with `base-uri 'none'` and `object-src 'none'`, `Permissions-Policy`, and `Cache-Control: no-store` are sent on every response
 * The uploads list and revoke action are scoped to the signed in user by Entra object ID (email fallback for files uploaded before that was stored); another user's token revoke returns the same 404 as a missing file
 * Downloads are always served as `application/octet-stream` with `Content-Disposition: attachment`, so an uploaded HTML file cannot run in the browser on your origin
-* Who may sign in is controlled in Entra, not in the app: turn on "Assignment required" on the enterprise application and assign a group. Without it every user in the tenant, guests included, can create links
+* Who may sign in is controlled in Entra, not in the app: "Assignment required" on the enterprise application with assigned users or groups (`ASSIGNMENT_REQUIRED=true` and `APP_USERS` in `deploy.env`). Without it every user in the tenant, guests included, can create links
 * Recommended in Azure: replace Storage Blob Data Owner with a custom role (Blob Data Contributor + `blobs/tags/read`) scoped to the container, restrict the storage account network to the App Service outbound IPs, enable Defender's "soft delete malicious blobs", send app and storage diagnostics to Log Analytics, and swap the client secret for a federated identity credential on the managed identity
 * Optional hardening: subscribe an Event Grid handler to Defender scan results to quarantine malicious files the moment scanning completes, rather than at first download attempt
 

@@ -1,5 +1,5 @@
 // SecureShare: storage + Defender malware scanning + Linux App Service with managed identity.
-// Deploy with infra/deploy.sh (reads infra/deploy.env) or:
+// Deploy with infra/deploy.ps1 or infra/deploy.sh (both read infra/deploy.env) or:
 //   az deployment group create -g <rg> --parameters infra/main.bicepparam
 targetScope = 'resourceGroup'
 

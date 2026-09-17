@@ -1,5 +1,5 @@
 // Parameter values come from environment variables so secrets never appear on the command line.
-// deploy.sh exports them from infra/deploy.env before running the deployment.
+// deploy.ps1 and deploy.sh export them from infra/deploy.env before running the deployment.
 using './main.bicep'
 
 param baseName = readEnvironmentVariable('BASE_NAME', 'secureshare')
