@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureShare</title>
+  <!-- Resolves the theme before first paint. Must stay in <head> and stay synchronous. -->
+  <script src="/theme.js"></script>
+  <style>
+    /* Light is the base palette. Dark is redefined twice on purpose:
+       once for the system preference (unless the user forced light),
+       once for an explicit choice, so the switch wins in both directions. */
+    :root {
+      color-scheme: light;
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --text: #1c1e21;
+      --muted: #65676b;
+      --border: #dcdfe3;
+      --border-dashed: #bcc0c6;
+      --input-bg: #ffffff;
+      --accent: #0f6cbd;
+      --accent-text: #ffffff;
+      --accent-soft: #eef6fd;
+      --danger: #b00020;
+      --danger-bg: #fde8ea;
+      --danger-border: #e0b4bb;
+      --ok-bg: #e3f6e8;
+      --ok-text: #1b6e3a;
+      --warn-bg: #fff4e0;
+      --warn-text: #8a5a00;
+      --shadow: 0 2px 12px rgba(0, 0, 0, .08);
+      --track: #cfd4da;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #121417;
+        --surface: #1c1f24;
+        --text: #e6e8eb;
+        --muted: #9ba1a8;
+        --border: #2e333a;
+        --border-dashed: #454b53;
+        --input-bg: #15181c;
+        --accent: #4c9fe8;
+        --accent-text: #0b1016;
+        --accent-soft: #17232e;
+        --danger: #ff6b7d;
+        --danger-bg: #3a1e23;
+        --danger-border: #5c2c34;
+        --ok-bg: #16301f;
+        --ok-text: #7ddb9b;
+        --warn-bg: #33270f;
+        --warn-text: #e8b661;
+        --shadow: 0 2px 16px rgba(0, 0, 0, .45);
+        --track: #3d434b;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121417;
+      --surface: #1c1f24;
+      --text: #e6e8eb;
+      --muted: #9ba1a8;
+      --border: #2e333a;
+      --border-dashed: #454b53;
+      --input-bg: #15181c;
+      --accent: #4c9fe8;
+      --accent-text: #0b1016;
+      --accent-soft: #17232e;
+      --danger: #ff6b7d;
+      --danger-bg: #3a1e23;
+      --danger-border: #5c2c34;
+      --ok-bg: #16301f;
+      --ok-text: #7ddb9b;
+      --warn-bg: #33270f;
+      --warn-text: #e8b661;
+      --shadow: 0 2px 16px rgba(0, 0, 0, .45);
+      --track: #3d434b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 16px;
+      transition: background-color .15s ease, color .15s ease;
+    }
+
+    main {
+      background: var(--surface);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: var(--shadow);
+      transition: background-color .15s ease;
+    }
+
+    .topbar { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; margin-bottom: .25rem; }
+    .topbar a { color: var(--accent); font-size: .8rem; text-decoration: none; }
+    .topbar a:hover { text-decoration: underline; }
+
+    h1 { margin: 0; font-size: 1.4rem; }
+    h2 { font-size: 1rem; margin: 1.75rem 0 .5rem; }
+    #user { color: var(--muted); font-size: .85rem; margin-bottom: 1.5rem; }
+
+    /* Theme switch */
+    #theme-switch {
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      line-height: 0;
+      border-radius: 999px;
+    }
+    #theme-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    #theme-switch .track {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 46px;
+      height: 25px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--track);
+      transition: background-color .2s ease;
+    }
+    #theme-switch .icon { width: 12px; height: 12px; position: relative; z-index: 1; color: var(--surface); }
+    #theme-switch .knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+      transition: transform .2s ease;
+    }
+    #theme-switch[aria-checked="true"] .track { background: var(--accent); }
+    #theme-switch[aria-checked="true"] .knob { transform: translateX(21px); }
+
+    /* Drop zone */
+    #drop {
+      border: 2px dashed var(--border-dashed);
+      border-radius: 10px;
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, background-color .15s;
+    }
+    #drop.over { border-color: var(--accent); background: var(--accent-soft); }
+
+    #result { margin-top: 1.25rem; display: none; }
+    .linkbox { display: flex; gap: .5rem; margin-top: .5rem; }
+    .linkbox input {
+      flex: 1;
+      min-width: 0;
+      padding: .55rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: .85rem;
+      background: var(--input-bg);
+      color: var(--text);
+    }
+
+    button {
+      background: var(--accent);
+      color: var(--accent-text);
+      border: 0;
+      border-radius: 8px;
+      padding: .55rem 1rem;
+      cursor: pointer;
+      font-size: .9rem;
+      font-family: inherit;
+    }
+    button:hover { filter: brightness(1.1); }
+    button:disabled { opacity: .5; cursor: default; }
+
+    .note { font-size: .8rem; color: var(--muted); margin-top: .75rem; }
+    .err { color: var(--danger); margin-top: 1rem; display: none; }
+    progress { width: 100%; margin-top: 1rem; display: none; }
+
+    /* Uploads list */
+    /* Fixed layout: the name column takes what is left and truncates, so actions never clip */
+    #files { width: 100%; border-collapse: collapse; font-size: .85rem; table-layout: fixed; }
+    #files th, #files td { text-align: left; padding: .45rem .4rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    #files th { color: var(--muted); font-weight: 500; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; }
+    #files .name { min-width: 0; overflow: hidden; }
+    #files .name .fname, #files .name .dl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #files .name .dl { color: var(--muted); font-size: .74rem; margin-top: .1rem; font-weight: 400; }
+    #files .status { width: 138px; }
+    #files .expires { width: 88px; }
+    #files .actions { width: 128px; white-space: nowrap; text-align: right; }
+    #files button { padding: .3rem .55rem; font-size: .75rem; margin-left: .25rem; }
+    /* Phones: each upload becomes a two line row, name on top, status and actions below */
+    @media (max-width: 560px) {
+      main { padding: 1.5rem 1.1rem; }
+      #files, #files tbody { display: block; }
+      #files thead { display: none; }
+      #files tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "name    name"
+          "status  actions"
+          "expires actions";
+        align-items: center;
+        gap: .3rem .75rem;
+        padding: .7rem .1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      /* min-width: 0 lets the long name truncate instead of widening the grid */
+      #files td { border: 0; padding: 0; width: auto; min-width: 0; }
+      #files .name { grid-area: name; font-weight: 500; }
+      #files .status { grid-area: status; }
+      #files .expires { grid-area: expires; color: var(--muted); font-size: .78rem; white-space: nowrap; }
+      #files .expires::before { content: "Expires "; }
+      #files .actions { grid-area: actions; }
+    }
+    #files button.revoke { background: transparent; color: var(--danger); border: 1px solid var(--danger-border); }
+    #files-empty { color: var(--muted); font-size: .85rem; }
+    .tablewrap { overflow-x: auto; }
+
+    .badge { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 600; white-space: nowrap; }
+    .badge.pending { background: var(--warn-bg); color: var(--warn-text); }
+    .badge.clean { background: var(--ok-bg); color: var(--ok-text); }
+    .badge.malicious, .badge.unscanned { background: var(--danger-bg); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <button id="theme-switch" type="button" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch to dark theme">
+        <span class="track">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5"></circle>
+            <path d="M12 1.5v2M12 20.5v2M3.6 3.6l1.4 1.4M19 19l1.4 1.4M1.5 12h2M20.5 12h2M3.6 20.4L5 19M19 5l1.4-1.4"></path>
+          </svg>
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.7 14.6A8.8 8.8 0 0 1 9.4 3.3a8.8 8.8 0 1 0 11.3 11.3z"></path>
+          </svg>
+          <span class="knob"></span>
+        </span>
+      </button>
+      <a href="/admin" id="activity-link" hidden>Activity log</a>
+      <a href="/auth/logout">Sign out</a>
+    </div>
+    <h1>SecureShare</h1>
+    <div id="user"></div>
+    <div id="drop">Drop a file here or click to choose<br><small id="ttl">Links expire after 7 days</small></div>
+    <input type="file" id="file" hidden>
+    <progress id="prog" max="100" value="0"></progress>
+    <div class="err" id="err"></div>
+    <div id="result">
+      <strong id="fname"></strong>
+      <div class="linkbox">
+        <input id="link" readonly>
+        <button id="copy">Copy</button>
+      </div>
+      <div class="note" id="note"></div>
+    </div>
+    <h2>Your uploads</h2>
+    <div id="files-empty">No active links.</div>
+    <div class="tablewrap">
+      <table id="files" hidden>
+        <thead><tr><th class="name">File</th><th class="status">Status</th><th class="expires">Expires</th><th class="actions"><span hidden>Actions</span></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

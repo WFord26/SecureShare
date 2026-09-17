@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureShare activity log</title>
+  <!-- Resolves the theme before first paint. Must stay in <head> and stay synchronous. -->
+  <script src="/theme.js"></script>
+  <style>
+    /* Same token set as index.html: light on :root, dark for the system preference and for an explicit choice */
+    :root {
+      color-scheme: light;
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --text: #1c1e21;
+      --muted: #65676b;
+      --border: #dcdfe3;
+      --input-bg: #ffffff;
+      --accent: #0f6cbd;
+      --accent-text: #ffffff;
+      --accent-soft: #eef6fd;
+      --danger: #b00020;
+      --danger-bg: #fde8ea;
+      --ok-bg: #e3f6e8;
+      --ok-text: #1b6e3a;
+      --warn-bg: #fff4e0;
+      --warn-text: #8a5a00;
+      --neutral-bg: #eceef1;
+      --shadow: 0 2px 12px rgba(0, 0, 0, .08);
+      --track: #cfd4da;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #121417;
+        --surface: #1c1f24;
+        --text: #e6e8eb;
+        --muted: #9ba1a8;
+        --border: #2e333a;
+        --input-bg: #15181c;
+        --accent: #4c9fe8;
+        --accent-text: #0b1016;
+        --accent-soft: #17232e;
+        --danger: #ff6b7d;
+        --danger-bg: #3a1e23;
+        --ok-bg: #16301f;
+        --ok-text: #7ddb9b;
+        --warn-bg: #33270f;
+        --warn-text: #e8b661;
+        --neutral-bg: #272b31;
+        --shadow: 0 2px 16px rgba(0, 0, 0, .45);
+        --track: #3d434b;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121417;
+      --surface: #1c1f24;
+      --text: #e6e8eb;
+      --muted: #9ba1a8;
+      --border: #2e333a;
+      --input-bg: #15181c;
+      --accent: #4c9fe8;
+      --accent-text: #0b1016;
+      --accent-soft: #17232e;
+      --danger: #ff6b7d;
+      --danger-bg: #3a1e23;
+      --ok-bg: #16301f;
+      --ok-text: #7ddb9b;
+      --warn-bg: #33270f;
+      --warn-text: #e8b661;
+      --neutral-bg: #272b31;
+      --shadow: 0 2px 16px rgba(0, 0, 0, .45);
+      --track: #3d434b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 1.5rem 16px;
+    }
+
+    main {
+      background: var(--surface);
+      padding: 1.75rem 2rem 2rem;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+    .topbar .spacer { flex: 1; }
+    .topbar a { color: var(--accent); font-size: .8rem; text-decoration: none; }
+    .topbar a:hover { text-decoration: underline; }
+
+    h1 { margin: 0; font-size: 1.4rem; }
+    .sub { color: var(--muted); font-size: .85rem; margin: .25rem 0 1.25rem; }
+
+    /* Theme switch (behavior in theme.js) */
+    #theme-switch { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0; border-radius: 999px; }
+    #theme-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    #theme-switch .track {
+      position: relative; display: inline-flex; align-items: center; justify-content: space-between;
+      width: 46px; height: 25px; padding: 0 5px; border-radius: 999px; background: var(--track); transition: background-color .2s ease;
+    }
+    #theme-switch .icon { width: 12px; height: 12px; position: relative; z-index: 1; color: var(--surface); }
+    #theme-switch .knob {
+      position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%;
+      background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s ease;
+    }
+    #theme-switch[aria-checked="true"] .track { background: var(--accent); }
+    #theme-switch[aria-checked="true"] .knob { transform: translateX(21px); }
+
+    button, .button {
+      background: var(--accent); color: var(--accent-text); border: 0; border-radius: 8px;
+      padding: .45rem .8rem; cursor: pointer; font-size: .82rem; font-family: inherit; text-decoration: none;
+      display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap;
+    }
+    button:hover, .button:hover { filter: brightness(1.1); }
+    button:focus-visible, .button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .button.secondary, button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--border); }
+
+    /* Range controls */
+    .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem 1rem; margin-bottom: 1.25rem; }
+    .presets { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .presets button { background: transparent; color: var(--text); border-radius: 0; border-right: 1px solid var(--border); }
+    .presets button:last-child { border-right: 0; }
+    .presets button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    label.field { display: flex; flex-direction: column; gap: .2rem; font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    input[type="date"], input[type="search"] {
+      font: inherit; font-size: .85rem; padding: .38rem .5rem; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--input-bg); color: var(--text); min-width: 0;
+    }
+    .controls .spacer { flex: 1; }
+    .exports { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+    /* Stat tiles */
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; margin-bottom: 1.5rem; }
+    .tile { border: 1px solid var(--border); border-radius: 10px; padding: .8rem .9rem; }
+    .tile .label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    .tile .value { font-size: 1.6rem; font-weight: 600; margin-top: .15rem; font-variant-numeric: tabular-nums; }
+    .tile .detail { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+
+    /* Tabs */
+    .tabbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; border-bottom: 1px solid var(--border); margin-bottom: .75rem; }
+    .tabs { display: flex; gap: .25rem; }
+    .tabs button {
+      background: transparent; color: var(--muted); border-radius: 0; padding: .6rem .7rem; font-size: .88rem;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+    .tabs .count { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+    .tabbar .spacer { flex: 1; }
+    .tabbar input[type="search"] { width: 240px; max-width: 100%; margin-bottom: .35rem; }
+
+    /* Tables */
+    .tablewrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    th, td { text-align: left; padding: .5rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.when { white-space: nowrap; }
+    td.file { max-width: 320px; overflow-wrap: anywhere; font-weight: 500; }
+    td .muted, .muted { color: var(--muted); }
+    .small { font-size: .76rem; }
+    td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; white-space: nowrap; }
+    h2 { font-size: 1rem; margin: 1.5rem 0 .5rem; }
+    h2:first-child { margin-top: .5rem; }
+
+    tr.expandable { cursor: pointer; }
+    tr.expandable:hover td { background: var(--accent-soft); }
+    .chev { display: inline-block; width: 1em; color: var(--muted); transition: transform .15s ease; }
+    tr[aria-expanded="true"] .chev { transform: rotate(90deg); }
+    tr.detail > td { background: var(--bg); padding: .5rem .75rem .9rem 2rem; }
+    tr.detail table { font-size: .8rem; }
+    tr.detail th, tr.detail td { border-bottom-color: var(--border); }
+
+    .badge { display: inline-block; padding: .12rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 600; white-space: nowrap; }
+    .badge.ok { background: var(--ok-bg); color: var(--ok-text); }
+    .badge.warn { background: var(--warn-bg); color: var(--warn-text); }
+    .badge.bad { background: var(--danger-bg); color: var(--danger); }
+    .badge.neutral { background: var(--neutral-bg); color: var(--muted); }
+
+    .notice { color: var(--muted); font-size: .85rem; padding: 1.25rem 0; }
+    .notice.err { color: var(--danger); }
+    .more { margin-top: .75rem; }
+
+    @media (max-width: 640px) {
+      main { padding: 1.25rem 1rem 1.5rem; }
+      .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+      .tile { padding: .65rem .7rem; }
+      .tile .value { font-size: 1.3rem; }
+      .tabbar input[type="search"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <a href="/">&larr; Uploads</a>
+      <span class="spacer"></span>
+      <button id="theme-switch" type="button" role="switch" aria-checked="false" aria-label="Dark theme" title="Switch to dark theme">
+        <span class="track">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5"></circle>
+            <path d="M12 1.5v2M12 20.5v2M3.6 3.6l1.4 1.4M19 19l1.4 1.4M1.5 12h2M20.5 12h2M3.6 20.4L5 19M19 5l1.4-1.4"></path>
+          </svg>
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.7 14.6A8.8 8.8 0 0 1 9.4 3.3a8.8 8.8 0 1 0 11.3 11.3z"></path>
+          </svg>
+          <span class="knob"></span>
+        </span>
+      </button>
+      <a href="/auth/logout">Sign out</a>
+    </div>
+
+    <h1>Activity log</h1>
+    <p class="sub" id="sub">Uploads and downloads across all users.</p>
+
+    <div class="controls">
+      <div class="presets" role="group" aria-label="Date range">
+        <button type="button" data-days="7">7 days</button>
+        <button type="button" data-days="30">30 days</button>
+        <button type="button" data-days="90">90 days</button>
+        <button type="button" data-days="365">1 year</button>
+        <button type="button" data-days="all">All</button>
+      </div>
+      <label class="field">From <input type="date" id="from"></label>
+      <label class="field">To <input type="date" id="to"></label>
+      <span class="spacer"></span>
+      <div class="exports">
+        <a class="button secondary" id="export-uploads" href="#">Export uploads CSV</a>
+        <a class="button secondary" id="export-downloads" href="#">Export downloads CSV</a>
+      </div>
+    </div>
+
+    <div class="tiles" id="tiles" aria-live="polite"></div>
+
+    <div class="tabbar">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-uploads" aria-controls="panel-uploads" aria-selected="true">Uploads <span class="count" id="count-uploads"></span></button>
+        <button type="button" role="tab" id="tab-downloads" aria-controls="panel-downloads" aria-selected="false">Downloads <span class="count" id="count-downloads"></span></button>
+        <button type="button" role="tab" id="tab-people" aria-controls="panel-people" aria-selected="false">People</button>
+      </div>
+      <span class="spacer"></span>
+      <input type="search" id="filter" placeholder="Filter by file, person or IP" aria-label="Filter">
+    </div>
+
+    <section id="panel-uploads" role="tabpanel" aria-labelledby="tab-uploads"></section>
+    <section id="panel-downloads" role="tabpanel" aria-labelledby="tab-downloads" hidden></section>
+    <section id="panel-people" role="tabpanel" aria-labelledby="tab-people" hidden></section>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>
