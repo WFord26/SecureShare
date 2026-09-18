@@ -205,6 +205,8 @@ New App Service apps get a unique default hostname. With `UPDATE_APP_REG=false` 
 
 ### Enterprise application
 
+To prepare this registration for delegated Purview API calls, use `pwsh infra/deploy.ps1 -EntraOnly -PurviewPermissions`. See [Purview Entra setup](infra/PURVIEW.md) for permissions, consent, and remaining DLP integration requirements.
+
 An Entra app has two halves. The **app registration** holds the redirect URIs, app roles and client secret. The **enterprise application** (service principal) is the tenant's instance of it and controls who may sign in. `deploy.ps1` configures both from `deploy.env`:
 
 | Setting | Effect |

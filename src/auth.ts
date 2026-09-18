@@ -4,10 +4,12 @@ import crypto from "crypto";
 import { config } from "./config";
 import { page } from "./html";
 import { logSafe } from "./util";
+import { checkPurview, PurviewStatus } from "./purview";
 
 declare module "express-session" {
   interface SessionData {
     user?: { name: string; email: string; oid: string; tid: string; roles: string[] };
+    purviewStatus?: PurviewStatus;
   }
 }
 
@@ -25,6 +27,8 @@ const msal = new ConfidentialClientApplication({
 const cryptoProvider = new CryptoProvider();
 const REDIRECT_URI = `${config.baseUrl}/auth/callback`;
 const SCOPES = ["openid", "profile", "email"];
+const PURVIEW_SCOPES = [...SCOPES, "https://graph.microsoft.com/ProtectionScopes.Compute.User"];
+export const purviewSupported = config.authorityHost === "https://login.microsoftonline.com";
 
 // ---------------------------------------------------------------------------------------------
 // In flight sign in state (PKCE verifier, CSRF state, return path) lives in a short lived signed
@@ -36,6 +40,7 @@ const AUTH_COOKIE = config.isHttps ? "__Host-ss.auth" : "ss.auth";
 const AUTH_COOKIE_TTL_MS = 10 * 60 * 1000;
 
 interface PendingAuth {
+  purview?: boolean;
   verifier: string;
   state: string;
   returnTo: string;
@@ -149,16 +154,18 @@ export const authRouter = Router();
 
 authRouter.get("/login", async (req, res, next) => {
   try {
+    const purview = req.query.purview === "1" && purviewSupported;
     const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
     const state = cryptoProvider.createNewGuid();
     setPending(res, {
+      purview,
       verifier,
       state,
       returnTo: safeReturnTo(typeof req.query.returnTo === "string" ? req.query.returnTo : undefined),
       issuedAt: Date.now(),
     });
     const url = await msal.getAuthCodeUrl({
-      scopes: SCOPES,
+      scopes: purview ? PURVIEW_SCOPES : SCOPES,
       redirectUri: REDIRECT_URI,
       codeChallenge: challenge,
       codeChallengeMethod: "S256",
@@ -199,7 +206,7 @@ authRouter.get("/callback", async (req, res, next) => {
 
     const result = await msal.acquireTokenByCode({
       code: q.code,
-      scopes: SCOPES,
+      scopes: pending.purview ? PURVIEW_SCOPES : SCOPES,
       redirectUri: REDIRECT_URI,
       codeVerifier: pending.verifier,
       state: q.state,
@@ -231,6 +238,9 @@ authRouter.get("/callback", async (req, res, next) => {
       tid,
       roles: Array.isArray(claims.roles) ? (claims.roles as unknown[]).map(String) : [],
     };
+    if (pending.purview && purviewSupported) {
+      req.session.purviewStatus = await checkPurview(result.accessToken, config.clientId);
+    }
     res.redirect(safeReturnTo(pending.returnTo));
   } catch (err) {
     next(err);

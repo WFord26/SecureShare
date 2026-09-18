@@ -190,6 +190,8 @@
     button:disabled { opacity: .5; cursor: default; }
 
     .note { font-size: .8rem; color: var(--muted); margin-top: .75rem; }
+    #purview { margin: 1rem 0; padding: .85rem; border: 1px solid var(--border); border-radius: .5rem; font-size: .85rem; }
+    #purview p { margin: .4rem 0; }
     .err { color: var(--danger); margin-top: 1rem; display: none; }
     progress { width: 100%; margin-top: 1rem; display: none; }
 
@@ -260,6 +262,12 @@
     </div>
     <h1>SecureShare</h1>
     <div id="user"></div>
+    <section id="purview" aria-label="Purview status">
+      <strong>Purview status</strong>
+      <p id="purview-status" role="status">Loading status…</p>
+      <p class="note">Status check only. Files are not inspected or blocked by Purview.</p>
+      <a id="purview-check" href="/auth/login?purview=1" hidden>Check with Microsoft</a>
+    </section>
     <div id="drop">Drop a file here or click to choose<br><small id="ttl">Links expire after 7 days</small></div>
     <input type="file" id="file" hidden>
     <progress id="prog" max="100" value="0"></progress>

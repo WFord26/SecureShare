@@ -28,6 +28,10 @@
 .PARAMETER SkipEntra
     Deploy without touching the app registration or enterprise application, even when UPDATE_APP_REG=true.
 
+.PARAMETER PurviewPermissions
+    Add delegated Content.Process.User and ProtectionScopes.Compute.User permissions to the Entra app.
+    With GRANT_ADMIN_CONSENT=true, also grant consent. This does not enable DLP in the application.
+
 .PARAMETER Preview
     Read only: show what the Bicep deployment would change (az deployment group what-if) and exit.
 
@@ -49,6 +53,7 @@ param(
     [Parameter(ParameterSetName = 'AppOnly', Mandatory)][switch]$AppOnly,
     [Parameter(ParameterSetName = 'EntraOnly', Mandatory)][switch]$EntraOnly,
     [Parameter(ParameterSetName = 'Preview', Mandatory)][switch]$Preview,
+    [Parameter(ParameterSetName = 'EntraOnly')][switch]$PurviewPermissions,
     [Parameter(ParameterSetName = 'All')]
     [Parameter(ParameterSetName = 'InfraOnly')][switch]$SkipEntra,
     [string]$EnvFile = $(if ($env:ENV_FILE) { $env:ENV_FILE } else { Join-Path $PSScriptRoot 'deploy.env' })
@@ -197,7 +202,27 @@ function Get-GraphFilterPath([string]$Collection, [string]$Filter, [string]$Sele
 
 # ------------------------------------------------------------------------------------------------ Entra: app registration and enterprise application
 
+function Resolve-DelegatedScopes {
+    param([object[]]$Available, [string[]]$Requested)
+    $resolved = @{}
+    foreach ($name in $Requested) {
+        $matches = @($Available | Where-Object { $_.value -eq $name -and $_.isEnabled })
+        if ($matches.Count -ne 1 -or -not $matches[0].id) {
+            throw "Required delegated Graph permission '$name' is unavailable or disabled in this tenant/cloud. No app changes were made."
+        }
+        $resolved[$name] = $matches[0].id
+    }
+    return $resolved
+}
+
 function Initialize-EntraApp {
+    $requestedScopes = @($SignInScopes)
+    if ($PurviewPermissions) {
+        $requestedScopes += @('Content.Process.User', 'ProtectionScopes.Compute.User')
+        # Resolve before any writes so unsupported clouds/permissions fail without changing the app.
+    }
+    $graphSp = Invoke-Graph -Path "/servicePrincipals(appId='$GraphAppId')?`$select=id,oauth2PermissionScopes"
+    $scopeIds = Resolve-DelegatedScopes -Available $graphSp.oauth2PermissionScopes -Requested $requestedScopes
     $appSelect = 'id,appId,displayName,signInAudience,appRoles,web,requiredResourceAccess,passwordCredentials'
     $tenantId = Get-Cfg 'TENANT_ID'
     $singleTenant = $tenantId -match $GuidPattern
@@ -280,14 +305,11 @@ function Initialize-EntraApp {
     foreach ($role in @($current.appRoles)) { $script:RoleIds[$role.value] = $role.id }
 
     # ---- Sign in permissions (Microsoft Graph delegated openid, profile, email, offline_access)
-    $graphSp = Invoke-Graph -Path "/servicePrincipals(appId='$GraphAppId')?`$select=id,oauth2PermissionScopes"
-    $scopeIds = @{}
-    foreach ($s in @($graphSp.oauth2PermissionScopes)) { if ($s.value -in $SignInScopes) { $scopeIds[$s.value] = $s.id } }
     $access = [Collections.Generic.List[object]]::new()
     foreach ($r in @($app.requiredResourceAccess)) { if ($null -ne $r) { $access.Add($r) } }
     $graphEntry = $access | Where-Object { $_.resourceAppId -eq $GraphAppId } | Select-Object -First 1
     $declared = @($graphEntry.resourceAccess | Where-Object { $_.type -eq 'Scope' } | ForEach-Object { $_.id })
-    $missing = @($SignInScopes | Where-Object { $scopeIds[$_] -and $scopeIds[$_] -notin $declared })
+    $missing = @($requestedScopes | Where-Object { $scopeIds[$_] -notin $declared })
     if ($missing.Count -gt 0) {
         $entries = [Collections.Generic.List[object]]::new()
         foreach ($ra in @($graphEntry.resourceAccess)) { if ($null -ne $ra) { $entries.Add($ra) } }
@@ -389,7 +411,7 @@ function Initialize-EntraApp {
     if (Test-Cfg 'GRANT_ADMIN_CONSENT') {
         $filter = "clientId eq '$($sp.id)' and consentType eq 'AllPrincipals' and resourceId eq '$($graphSp.id)'"
         $grants = @((Invoke-Graph -Path (Get-GraphFilterPath '/oauth2PermissionGrants' $filter)).value)
-        $wantedScopes = $SignInScopes -join ' '
+        $wantedScopes = $requestedScopes -join ' '
         if ($grants.Count -eq 0) {
             $grant = Invoke-Graph -Method POST -Path '/oauth2PermissionGrants' -AllowFailure -Body ([ordered]@{
                     clientId    = $sp.id
@@ -402,7 +424,7 @@ function Initialize-EntraApp {
         }
         else {
             $have = @($grants[0].scope -split '\s+' | Where-Object { $_ })
-            $add = @($SignInScopes | Where-Object { $_ -notin $have })
+            $add = @($requestedScopes | Where-Object { $_ -notin $have })
             if ($add.Count -gt 0) {
                 $patched = Invoke-Graph -Method PATCH -Path "/oauth2PermissionGrants/$($grants[0].id)" -AllowFailure -Body @{ scope = (($have + $add) -join ' ') }
                 if ($null -ne $patched -or -not $script:LastAzError) { Write-Note "Admin consent extended with: $($add -join ' ')" }

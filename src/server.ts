@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import rateLimit from "express-rate-limit";
 import { config } from "./config";
-import { authRouter, requireAuth, requireAuthApi, requireAuditor, isAuditor } from "./auth";
+import { authRouter, requireAuth, requireAuthApi, requireAuditor, isAuditor, purviewSupported } from "./auth";
 import { uploadFile, getFileMeta, streamFile, deleteFile, listFilesForUser, isOwner, verifyStorageAccess, blobEndpoint, FileMeta } from "./storage";
 import { page } from "./html";
 import { logSafe, tokenRef, clientIp } from "./util";
@@ -102,6 +102,10 @@ app.get("/theme.js", (_req, res) => {
 
 app.get("/api/me", requireAuthApi, (req, res) => {
   res.json({ ...req.session.user, linkTtlDays: config.linkTtlDays, auditor: isAuditor(req.session.user) });
+});
+
+app.get("/api/purview/status", requireAuthApi, (req, res) => {
+  res.json({ supported: purviewSupported, enforcementEnabled: false, status: req.session.purviewStatus ?? null });
 });
 
 // Activity log (app role holders only)

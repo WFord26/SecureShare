@@ -4,6 +4,27 @@ const prog = document.getElementById("prog");
 const errBox = document.getElementById("err");
 const result = document.getElementById("result");
 
+async function loadPurviewStatus() {
+  const status = document.getElementById("purview-status");
+  const check = document.getElementById("purview-check");
+  try {
+    const response = await fetch("/api/purview/status", { signal: AbortSignal.timeout(15000) });
+    if (response.status === 401) { status.textContent = "Sign in to check Purview status."; return; }
+    if (!response.ok) throw new Error("Status unavailable");
+    const data = await response.json();
+    if (!data.supported) { status.textContent = "Purview status checks are currently available for commercial Microsoft tenants only."; return; }
+    check.hidden = false;
+    if (!data.status) { status.textContent = "Not checked for this session. Connect to check the policies for your account."; return; }
+    check.textContent = "Check again with Microsoft";
+    const labels = { inline: "inline evaluation required", audit: "audit evaluation only", none: "no applicable policy" };
+    const s = data.status;
+    status.textContent = s.state === "checked"
+      ? `Text uploads: ${labels[s.text] || "unknown"}. File uploads: ${labels[s.files] || "unknown"}. Checked ${new Date(s.checkedAt).toLocaleString()}. This does not verify content detection.`
+      : s.message;
+  } catch { status.textContent = "Purview status is unavailable. Reload the page to retry."; }
+}
+loadPurviewStatus();
+
 fetch("/api/me").then(r => r.json()).then(u => {
   document.getElementById("user").textContent = `Signed in as ${u.name} (${u.email})`;
   if (u.linkTtlDays) document.getElementById("ttl").textContent = `Links expire after ${u.linkTtlDays} days`;
