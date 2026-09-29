@@ -240,6 +240,21 @@
     .badge.pending { background: var(--warn-bg); color: var(--warn-text); }
     .badge.clean { background: var(--ok-bg); color: var(--ok-text); }
     .badge.malicious, .badge.unscanned { background: var(--danger-bg); color: var(--danger); }
+
+    /* Password protection */
+    #pw-toggle-row { display: flex; align-items: center; gap: .4rem; margin-top: .85rem; font-size: .85rem; color: var(--muted); }
+    #pw-toggle-row input[type="checkbox"] { margin: 0; }
+    #pw-fields { margin-top: .5rem; display: none; }
+    #pw-input {
+      width: 100%;
+      padding: .55rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: .9rem;
+    }
+    .lock { margin-left: .35rem; color: var(--muted); font-size: .8rem; }
   </style>
 </head>
 <body>
@@ -270,10 +285,19 @@
     </section>
     <div id="drop">Drop a file here or click to choose<br><small id="ttl">Links expire after 7 days</small></div>
     <input type="file" id="file" hidden>
+    <label id="pw-toggle-row" for="pw-toggle">
+      <input type="checkbox" id="pw-toggle">
+      Require a password to download
+    </label>
+    <div id="pw-fields">
+      <input type="password" id="pw-input" placeholder="Password" autocomplete="new-password">
+      <div class="note" id="pw-hint"></div>
+    </div>
     <progress id="prog" max="100" value="0"></progress>
     <div class="err" id="err"></div>
     <div id="result">
       <strong id="fname"></strong>
+      <span class="lock" id="result-lock" hidden>🔒 Password protected</span>
       <div class="linkbox">
         <input id="link" readonly>
         <button id="copy">Copy</button>

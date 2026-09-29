@@ -6,10 +6,11 @@ import rateLimit from "express-rate-limit";
 import { config } from "./config";
 import { authRouter, requireAuth, requireAuthApi, requireAuditor, isAuditor, purviewSupported } from "./auth";
 import { uploadFile, getFileMeta, streamFile, deleteFile, listFilesForUser, isOwner, verifyStorageAccess, blobEndpoint, FileMeta } from "./storage";
-import { page } from "./html";
-import { logSafe, tokenRef, clientIp } from "./util";
+import { page, passwordPage } from "./html";
+import { logSafe, tokenRef, clientIp, getCookie } from "./util";
 import * as audit from "./audit";
 import { adminRouter } from "./admin";
+import { hashPassword, verifyPassword, validatePassword, AttemptTracker, makeUnlockCookie, checkUnlockCookie, MIN_PASSWORD_LENGTH } from "./password";
 
 const app = express();
 app.disable("x-powered-by");
@@ -101,7 +102,7 @@ app.get("/theme.js", (_req, res) => {
 });
 
 app.get("/api/me", requireAuthApi, (req, res) => {
-  res.json({ ...req.session.user, linkTtlDays: config.linkTtlDays, auditor: isAuditor(req.session.user) });
+  res.json({ ...req.session.user, linkTtlDays: config.linkTtlDays, auditor: isAuditor(req.session.user), minPasswordLength: MIN_PASSWORD_LENGTH });
 });
 
 app.get("/api/purview/status", requireAuthApi, (req, res) => {
@@ -149,21 +150,31 @@ app.post("/api/upload", requireAuthApi, (req, res) => {
         .json({ error: tooBig ? `File exceeds the ${config.maxUploadBytes / 1024 / 1024} MB limit` : "Upload failed" });
     }
     if (!req.file) return res.status(400).json({ error: "No file provided" });
+    // Optional download password. An empty field means no password. Only its scrypt hash is kept.
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const password = typeof body.password === "string" ? body.password : "";
+    if (password) {
+      const problem = validatePassword(password);
+      if (problem) return res.status(400).json({ error: problem });
+    }
     try {
+      const passwordHash = password ? await hashPassword(password) : undefined;
       const meta = await uploadFile(
         req.file.buffer,
         req.file.originalname,
         req.file.mimetype,
         req.session.user!.email,
-        req.session.user!.oid
+        req.session.user!.oid,
+        passwordHash
       );
-      console.log(`Upload by ${logSafe(meta.uploadedBy)}: "${logSafe(meta.originalName)}" ${meta.size} bytes, token ${tokenRef(meta.token)}, expires ${meta.expiresAt.toISOString()}`);
+      console.log(`Upload by ${logSafe(meta.uploadedBy)}: "${logSafe(meta.originalName)}" ${meta.size} bytes, token ${tokenRef(meta.token)}, expires ${meta.expiresAt.toISOString()}${passwordHash ? ", password protected" : ""}`);
       audit.recordUpload(meta, req.session.user!, clientIp(req.ip));
       res.json({
         link: `${config.baseUrl}/d/${meta.token}`,
         fileName: meta.originalName,
         size: meta.size,
         expiresAt: meta.expiresAt.toISOString(),
+        passwordProtected: !!passwordHash,
         note:
           config.scanPolicy === "required"
             ? "File is being scanned for malware. The link works once the scan finds no threats."
@@ -194,6 +205,7 @@ function toApi(meta: FileMeta) {
     expiresAt: meta.expiresAt.toISOString(),
     scanStatus: meta.scanStatus,
     available: isAvailable(meta),
+    passwordProtected: !!meta.passwordHash,
     link: `${config.baseUrl}/d/${meta.token}`,
   };
 }
@@ -247,29 +259,124 @@ function contentDisposition(name: string): string {
   return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`;
 }
 
+// ------------------------------------------------------------------ Anonymous download page
+
+type Visitor = { ip: string; userAgent: string | undefined };
+
+/**
+ * Shared first steps of every request for a link: expired and unknown links get an identical 404 so tokens
+ * cannot be probed, and malware is deleted on sight whatever else the request was. Returns null once a
+ * response has been sent.
+ */
+async function resolveLink(req: Request, res: Response): Promise<{ meta: FileMeta; who: Visitor } | null> {
+  const meta = await getFileMeta(req.params.token);
+  const who: Visitor = { ip: clientIp(req.ip), userAgent: req.headers["user-agent"] };
+
+  // Expired or never existed: identical response, no information leak
+  if (!meta || Date.now() > meta.expiresAt.getTime()) {
+    if (meta) {
+      audit.recordDownload(meta, who, "expired");
+      await deleteFile(meta.token); // eager cleanup ahead of lifecycle policy
+    }
+    res.status(404).send(page("Link not found", `This link is invalid or has expired. Links are valid for ${config.linkTtlDays} days.`));
+    return null;
+  }
+
+  if (meta.scanStatus === "malicious") {
+    await deleteFile(meta.token);
+    console.warn(`Malicious file deleted: token ${tokenRef(meta.token)} uploaded by ${logSafe(meta.uploadedBy)} at ${meta.uploadedAt.toISOString()}, requested from ${who.ip}`);
+    audit.recordDownload(meta, who, "blocked");
+    audit.recordEnded(meta, "blocked", "malware scan");
+    res.status(403).send(page("File blocked", "This file was flagged by malware scanning and has been removed."));
+    return null;
+  }
+
+  return { meta, who };
+}
+
+// Password protected links. The unlock cookie is scoped to the link's own path, so it is only ever sent
+// back for that link. Its value is signed and carries no token (see password.ts).
+const UNLOCK_COOKIE = config.isHttps ? "__Secure-ss.dl" : "ss.dl";
+const unlockCookieOptions = (token: string) => ({ httpOnly: true, secure: config.isHttps, sameSite: "lax" as const, path: `/d/${token}` });
+const passwordAttempts = new AttemptTracker();
+
+function isUnlocked(req: Request, meta: FileMeta): boolean {
+  if (!meta.passwordHash) return true;
+  return checkUnlockCookie(config.sessionSecret, meta.token, meta.passwordHash, getCookie(req.headers.cookie, UNLOCK_COOKIE));
+}
+
+function minutesText(ms: number): string {
+  const m = Math.max(1, Math.ceil(ms / 60000));
+  return `${m} minute${m === 1 ? "" : "s"}`;
+}
+
+/**
+ * The password form is a plain HTML form post. Under the site wide Referrer-Policy: no-referrer, browsers send
+ * "Origin: null" on such a post (the Fetch spec ties the Origin header of a navigation to the referrer policy),
+ * which the cross site check above would reject. "same-origin" makes the browser send the real origin while the
+ * link URL still never reaches another site as a referer.
+ */
+function sendPasswordPage(res: Response, status: number, action: string, opts: { error?: string } = {}): void {
+  res.setHeader("Referrer-Policy", "same-origin");
+  res.status(status).send(passwordPage(action, opts));
+}
+
+// Password form submission. Wrong guesses are throttled per client and per link (in memory), on top of the
+// per IP rate limits below. Every guess, right or wrong, is written to the activity log.
+app.post(
+  "/d/:token",
+  limiter(15 * 60 * 1000, 30, "password"),
+  express.urlencoded({ extended: false, limit: "4kb", parameterLimit: 5 }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const link = await resolveLink(req, res);
+      if (!link) return;
+      const { meta, who } = link;
+      const action = `/d/${meta.token}`;
+      if (!meta.passwordHash) return res.redirect(303, action);
+
+      const wait = passwordAttempts.retryAfterMs(meta.token, who.ip);
+      if (wait > 0) {
+        audit.recordDownload(meta, who, "password_locked");
+        console.warn(`Password guess refused (locked out): token ${tokenRef(meta.token)} from ${who.ip}`);
+        res.setHeader("Retry-After", String(Math.ceil(wait / 1000)));
+        return sendPasswordPage(res, 429, action, { error: `Too many wrong passwords. Try again in ${minutesText(wait)}.` });
+      }
+
+      const body = (req.body ?? {}) as Record<string, unknown>;
+      const password = typeof body.password === "string" ? body.password : "";
+      if (!(await verifyPassword(password, meta.passwordHash))) {
+        const lock = passwordAttempts.recordFailure(meta.token, who.ip);
+        audit.recordDownload(meta, who, "password_wrong");
+        console.warn(`Wrong password: token ${tokenRef(meta.token)} "${logSafe(meta.originalName)}" from ${who.ip} ua="${logSafe(who.userAgent, 120)}"${lock ? `, locked out for ${minutesText(lock)}` : ""}`);
+        return sendPasswordPage(res, 401, action, { error: lock ? `Wrong password. Too many attempts, try again in ${minutesText(lock)}.` : "Wrong password. Check it with the sender and try again." });
+      }
+
+      passwordAttempts.recordSuccess(meta.token, who.ip);
+      audit.recordDownload(meta, who, "password_ok");
+      console.log(`Password accepted: token ${tokenRef(meta.token)} "${logSafe(meta.originalName)}" from ${who.ip}`);
+      const cookie = makeUnlockCookie(config.sessionSecret, meta.token, meta.passwordHash);
+      res.cookie(UNLOCK_COOKIE, cookie.value, { ...unlockCookieOptions(meta.token), expires: new Date(cookie.expiresAt) });
+      // Back to the link with GET: the same code path as an unprotected file serves it (or shows the scan wait page).
+      // A meta refresh rather than a 303 keeps this page on screen while the browser fetches the attachment.
+      res.send(page("Password accepted", "Your download is starting. If it does not, use the link below.", { redirect: action, link: { href: action, text: "Download the file" } }));
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
 // Anonymous download page: shows status, then streams the file
 app.get("/d/:token", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const meta = await getFileMeta(req.params.token);
-    const who = { ip: clientIp(req.ip), userAgent: req.headers["user-agent"] };
+    const link = await resolveLink(req, res);
+    if (!link) return;
+    const { meta, who } = link;
 
-    // Expired or never existed: identical response, no information leak
-    if (!meta || Date.now() > meta.expiresAt.getTime()) {
-      if (meta) {
-        audit.recordDownload(meta, who, "expired");
-        await deleteFile(meta.token); // eager cleanup ahead of lifecycle policy
-      }
-      return res
-        .status(404)
-        .send(page("Link not found", `This link is invalid or has expired. Links are valid for ${config.linkTtlDays} days.`));
-    }
-
-    if (meta.scanStatus === "malicious") {
-      await deleteFile(meta.token);
-      console.warn(`Malicious file deleted: token ${tokenRef(meta.token)} uploaded by ${logSafe(meta.uploadedBy)} at ${meta.uploadedAt.toISOString()}, requested from ${who.ip}`);
-      audit.recordDownload(meta, who, "blocked");
-      audit.recordEnded(meta, "blocked", "malware scan");
-      return res.status(403).send(page("File blocked", "This file was flagged by malware scanning and has been removed."));
+    // Password gate comes before the scan status so a visitor without the password learns nothing about the file
+    if (!isUnlocked(req, meta)) {
+      audit.recordDownload(meta, who, "password_prompt");
+      return sendPasswordPage(res, 200, `/d/${meta.token}`);
     }
 
     if (!isAvailable(meta)) {

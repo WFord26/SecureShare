@@ -14,12 +14,44 @@ p{color:var(--muted);line-height:1.5}
 a{color:var(--accent)}`;
 
 /** Minimal self contained status page. Title and body are escaped; pass plain text. */
-export function page(title: string, body: string, opts: { refresh?: number; link?: { href: string; text: string } } = {}): string {
+export function page(
+  title: string,
+  body: string,
+  opts: { refresh?: number; redirect?: string; link?: { href: string; text: string } } = {}
+): string {
+  const meta = opts.redirect
+    ? `<meta http-equiv="refresh" content="0;url=${esc(opts.redirect)}">`
+    : opts.refresh
+      ? `<meta http-equiv="refresh" content="${opts.refresh}">`
+      : "";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>
-${opts.refresh ? `<meta http-equiv="refresh" content="${opts.refresh}">` : ""}
+${meta}
 <script src="/theme.js"></script>
 <style>${THEME_CSS}</style>
 </head><body><main><h1>${esc(title)}</h1><p>${esc(body)}</p>${
     opts.link ? `<p><a href="${esc(opts.link.href)}">${esc(opts.link.text)}</a></p>` : ""
   }</main></body></html>`;
+}
+
+const PASSWORD_PAGE_CSS = `form{margin-top:1.25rem;display:flex;flex-direction:column;gap:.75rem}
+input[type=password]{padding:.65rem .75rem;border:1px solid var(--muted);border-radius:8px;font-size:1rem;background:var(--surface);color:var(--text)}
+button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:.65rem;font-size:1rem;font-family:inherit;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+.error{color:#c0392b;font-weight:600}`;
+
+/** Password prompt shown for a protected link. The form posts back to the same link URL. */
+export function passwordPage(action: string, opts: { error?: string } = {}): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Password required</title>
+<script src="/theme.js"></script>
+<style>${THEME_CSS}
+${PASSWORD_PAGE_CSS}</style>
+</head><body><main>
+<h1>Password required</h1>
+<p>This link is password protected. Enter the password to continue.</p>
+${opts.error ? `<p class="error">${esc(opts.error)}</p>` : ""}
+<form method="post" action="${esc(action)}" autocomplete="off">
+<input type="password" name="password" placeholder="Password" required autofocus>
+<button type="submit">Unlock</button>
+</form>
+</main></body></html>`;
 }

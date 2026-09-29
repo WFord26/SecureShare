@@ -30,6 +30,8 @@ export interface FileMeta {
   uploadedAt: Date;
   expiresAt: Date;
   scanStatus: ScanStatus;
+  /** scrypt hash of the download password, present only when the link is password protected */
+  passwordHash?: string;
 }
 
 export const blobEndpoint = `https://${config.storageAccount}.blob.${config.storageEndpointSuffix}`;
@@ -73,7 +75,8 @@ export async function uploadFile(
   originalName: string,
   contentType: string,
   uploadedBy: string,
-  uploaderOid: string
+  uploaderOid: string,
+  passwordHash?: string
 ): Promise<FileMeta> {
   const token = newToken();
   const now = new Date();
@@ -86,6 +89,9 @@ export async function uploadFile(
       uploadedby: b64(uploadedBy),
       uploaderoid: uploaderOid,
       uploadedat: now.toISOString(),
+      // The hash is already ASCII (base64url parts joined with "$"), so it needs no encoding.
+      // Omitted entirely when there is no password, rather than stored empty.
+      ...(passwordHash ? { passwordhash: passwordHash } : {}),
     },
   });
   return {
@@ -98,6 +104,7 @@ export async function uploadFile(
     uploadedAt: now,
     expiresAt: new Date(now.getTime() + config.linkTtlMs),
     scanStatus: "pending",
+    ...(passwordHash ? { passwordHash } : {}),
   };
 }
 
@@ -131,6 +138,7 @@ export async function getFileMeta(token: string): Promise<FileMeta | null> {
       uploadedAt,
       expiresAt: new Date(uploadedAt.getTime() + config.linkTtlMs),
       scanStatus,
+      ...(props.metadata?.passwordhash ? { passwordHash: props.metadata.passwordhash } : {}),
     };
   } catch (err: unknown) {
     const code = (err as { statusCode?: number }).statusCode;
@@ -174,6 +182,7 @@ export async function listFilesForUser(oid: string, email: string): Promise<File
       uploadedAt,
       expiresAt,
       scanStatus: parseScanTag(blob.tags?.[SCAN_TAG]),
+      ...(md.passwordhash ? { passwordHash: md.passwordhash } : {}),
     });
   }
   if (expired.length) {

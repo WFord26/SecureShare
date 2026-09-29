@@ -27,16 +27,32 @@ export const DOWNLOAD_TABLE = "downloadlog";
 export type UploadState = "active" | "expired" | "revoked" | "blocked";
 
 /**
- * served       whole file sent
- * incomplete   connection closed before the file finished (cancelled, network drop)
- * head         HEAD request, headers only (link checkers)
- * waiting      scan in progress page shown
- * blocked      malware found, file deleted
- * unscannable  SCAN_POLICY=required and Defender could not scan it
- * expired      link past its expiry
- * error        storage error while sending
+ * served           whole file sent
+ * incomplete       connection closed before the file finished (cancelled, network drop)
+ * head             HEAD request, headers only (link checkers)
+ * waiting          scan in progress page shown
+ * blocked          malware found, file deleted
+ * unscannable      SCAN_POLICY=required and Defender could not scan it
+ * expired          link past its expiry
+ * error            storage error while sending
+ * password_prompt  password page shown (link is password protected and the visitor has not unlocked it yet)
+ * password_ok      right password entered; the download follows as a separate served row
+ * password_wrong   wrong password entered
+ * password_locked  guess refused: too many wrong passwords from this client or on this link
  */
-export type DownloadOutcome = "served" | "incomplete" | "head" | "waiting" | "blocked" | "unscannable" | "expired" | "error";
+export type DownloadOutcome =
+  | "served"
+  | "incomplete"
+  | "head"
+  | "waiting"
+  | "blocked"
+  | "unscannable"
+  | "expired"
+  | "error"
+  | "password_prompt"
+  | "password_ok"
+  | "password_wrong"
+  | "password_locked";
 
 export interface UploadRecord {
   ref: string;
@@ -54,6 +70,10 @@ export interface UploadRecord {
   state: UploadState;
   endedAt?: Date;
   endedBy?: string;
+  /** Recipients must enter a password before the file is served */
+  passwordProtected: boolean;
+  /** Wrong password guesses on this link (any client) */
+  wrongPasswords: number;
   /** Completed downloads by browsers (automated fetches excluded) */
   downloads: number;
   incompleteDownloads: number;
@@ -78,9 +98,10 @@ export interface DownloadRecord {
 const tableUrl = `https://${config.storageAccount}.table.${config.storageEndpointSuffix}`;
 
 function tableClient(name: string): TableClient {
-  return config.storageConnectionString
-    ? TableClient.fromConnectionString(config.storageConnectionString, name)
-    : new TableClient(tableUrl, name, new DefaultAzureCredential());
+  if (!config.storageConnectionString) return new TableClient(tableUrl, name, new DefaultAzureCredential());
+  // Plain http only ever appears in a local emulator (Azurite) connection string; Azure endpoints are https
+  const allowInsecureConnection = /TableEndpoint=http:\/\//i.test(config.storageConnectionString);
+  return TableClient.fromConnectionString(config.storageConnectionString, name, { allowInsecureConnection });
 }
 
 const uploads = tableClient(UPLOAD_TABLE);
@@ -129,7 +150,8 @@ function strip<T extends object>(e: Stored<T>): T {
 
 function toRecord(e: Stored<UploadEntity>): UploadRecord {
   const { partitionKey: _pk, rowKey, ...rest } = strip(e);
-  const r: UploadRecord = { ref: rowKey, ...rest };
+  // Rows written before password support existed have neither field
+  const r: UploadRecord = { ref: rowKey, ...rest, passwordProtected: !!rest.passwordProtected, wrongPasswords: rest.wrongPasswords ?? 0 };
   if (r.state === "active" && Date.now() > r.expiresAt.getTime()) r.state = "expired";
   return r;
 }
@@ -150,6 +172,8 @@ function newUploadEntity(meta: FileMeta, extra: Partial<UploadRecord> = {}): Upl
     expiresAt: meta.expiresAt,
     scanStatus: meta.scanStatus,
     state: "active",
+    passwordProtected: !!meta.passwordHash,
+    wrongPasswords: 0,
     downloads: 0,
     incompleteDownloads: 0,
     automatedFetches: 0,
@@ -251,7 +275,10 @@ export function recordScanStatus(meta: FileMeta): void {
 
 // ------------------------------------------------------------------ Download records
 
-// The scan in progress page refreshes every 30 seconds; log it once per visitor per 10 minutes
+// Pages a visitor may reload many times before anything happens are logged once per visitor per 10 minutes:
+// the scan in progress page refreshes itself every 30 seconds, and the password page is shown on every
+// visit until the right password is entered.
+const QUIET_OUTCOMES = new Set<DownloadOutcome>(["waiting", "password_prompt"]);
 const WAITING_QUIET_MS = 10 * 60 * 1000;
 const waitingSeen = new Map<string, number>();
 
@@ -265,8 +292,8 @@ export function recordDownload(
   const now = new Date();
   const automated = isAutomated(req.userAgent);
 
-  if (outcome === "waiting") {
-    const key = `${meta.token}|${req.ip}`;
+  if (QUIET_OUTCOMES.has(outcome)) {
+    const key = `${outcome}|${meta.token}|${req.ip}`;
     const last = waitingSeen.get(key);
     if (last && now.getTime() - last < WAITING_QUIET_MS) return;
     waitingSeen.set(key, now.getTime());
@@ -294,6 +321,11 @@ export function recordDownload(
     "download counters",
     mutateUpload(meta, (e) => {
       if (meta.scanStatus !== "pending") e.scanStatus = meta.scanStatus;
+      e.passwordProtected = !!meta.passwordHash;
+      if (outcome === "password_wrong") {
+        e.wrongPasswords = (e.wrongPasswords ?? 0) + 1;
+        return;
+      }
       if (outcome !== "served" && outcome !== "incomplete") return;
       e.bytesServed = (e.bytesServed ?? 0) + bytes;
       if (automated) e.automatedFetches = (e.automatedFetches ?? 0) + 1;

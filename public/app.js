@@ -3,6 +3,18 @@ const fileInput = document.getElementById("file");
 const prog = document.getElementById("prog");
 const errBox = document.getElementById("err");
 const result = document.getElementById("result");
+const pwToggle = document.getElementById("pw-toggle");
+const pwFields = document.getElementById("pw-fields");
+const pwInput = document.getElementById("pw-input");
+const pwHint = document.getElementById("pw-hint");
+
+let minPasswordLength = 8;
+
+pwToggle.addEventListener("change", () => {
+  pwFields.style.display = pwToggle.checked ? "block" : "none";
+  if (pwToggle.checked) pwInput.focus();
+  else pwInput.value = "";
+});
 
 async function loadPurviewStatus() {
   const status = document.getElementById("purview-status");
@@ -29,6 +41,8 @@ fetch("/api/me").then(r => r.json()).then(u => {
   document.getElementById("user").textContent = `Signed in as ${u.name} (${u.email})`;
   if (u.linkTtlDays) document.getElementById("ttl").textContent = `Links expire after ${u.linkTtlDays} days`;
   if (u.auditor) document.getElementById("activity-link").hidden = false;
+  if (u.minPasswordLength) minPasswordLength = u.minPasswordLength;
+  pwHint.textContent = `At least ${minPasswordLength} characters. The recipient will need it to download the file.`;
 });
 
 // ---- Your uploads ----
@@ -70,6 +84,13 @@ async function loadFiles() {
     const fname = document.createElement("div");
     fname.className = "fname";
     fname.textContent = f.fileName;
+    if (f.passwordProtected) {
+      const lock = document.createElement("span");
+      lock.className = "lock";
+      lock.textContent = "🔒";
+      lock.title = "Password protected";
+      fname.appendChild(lock);
+    }
     name.appendChild(fname);
     // null when the activity log is unavailable: show nothing rather than a wrong zero
     if (f.downloads) {
@@ -143,11 +164,18 @@ drop.addEventListener("drop", e => {
 function upload(file) {
   errBox.style.display = "none";
   result.style.display = "none";
+
+  const password = pwToggle.checked ? pwInput.value : "";
+  if (pwToggle.checked && password.length < minPasswordLength) {
+    return showError(`Password must be at least ${minPasswordLength} characters`);
+  }
+
   prog.style.display = "block";
   prog.value = 0;
 
   const form = new FormData();
   form.append("file", file);
+  if (password) form.append("password", password);
 
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/upload");
@@ -161,11 +189,15 @@ function upload(file) {
     if (xhr.status === 401) return location.assign("/auth/login");
     if (xhr.status !== 200) return showError(data.error || `Upload failed (${xhr.status})`);
     document.getElementById("fname").textContent = data.fileName;
+    document.getElementById("result-lock").hidden = !data.passwordProtected;
     document.getElementById("link").value = data.link;
     document.getElementById("note").textContent =
       `${data.note} Expires ${new Date(data.expiresAt).toLocaleString()}.`;
     result.style.display = "block";
     fileInput.value = "";
+    pwToggle.checked = false;
+    pwFields.style.display = "none";
+    pwInput.value = "";
     loadFiles();
   };
   xhr.onerror = () => { prog.style.display = "none"; showError("Network error"); };
