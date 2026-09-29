@@ -2,6 +2,8 @@
 
 Authenticated file uploads with anonymized public download links.
 
+Client documentation: [Upload and share files](docs/SecureShare-Client-Guide.md) · [Admin portal guide](docs/SecureShare-Admin-Guide.md) · [Application diagram](docs/SecureShare-Application-Diagram.md). See the [documentation index](docs/README.md) for operator procedures.
+
 * Uploaders sign in with Entra ID (OAuth 2.0 / OIDC, auth code flow with PKCE). Default is a global / US commercial tenant; Azure China (21Vianet) and US Government tenants are supported by changing one setting
 * One command deployment to Azure App Service with Bicep, including the Entra app registration and enterprise application (`infra/deploy.ps1`, PowerShell 7 on macOS, Linux or Windows; `infra/deploy.sh` for bash)
 * Each upload gets an unguessable link anyone can use to download (256 bit random token)

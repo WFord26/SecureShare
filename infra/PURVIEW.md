@@ -90,10 +90,34 @@ The next integration test needs a Graph access token issued to SecureShare for a
 1. Call `/me/dataSecurityAndGovernance/protectionScopes/compute` with activity `uploadText` and a `policyLocationApplication` whose value is the SecureShare app ID above. Expect an applicable scope with `evaluateInline`. Empty scopes or only `evaluateOffline` do not prove blocking is configured.
 2. Submit synthetic credit-card test text (including contextual words, with no real cardholder data) through `/me/dataSecurityAndGovernance/processContent`, using SecureShare as the protected application and the policy ETag as `If-None-Match`. Expect `restrictAccess` with `restrictionAction: block`, and no processing errors.
 3. Test harmless text as a negative control. HTTP success by itself is not policy approval; inspect the returned actions and processing errors.
-4. Separately establish support for the required file types and `uploadFile` policies. The API documents file metadata, but the application DLP guidance documents text blocking. Do not silently substitute `UploadFile` in this rule or assume it covers PDF, Office, archives, images, or encrypted files.
-5. If evaluating extracted file text is the supported route, implement and test complete extraction/OCR and file-size handling. Keep files blocked when extraction or evaluation is incomplete. A text verdict must be tied to the exact original blob content before release.
+4. File uploads are not a supported DLP action for Entra-registered apps today. Microsoft documents this scope explicitly: "Support today is only available for a DLP policy that blocks prompts based on sensitive information types," using the `UploadText` action ([Entra-registered AI apps: data loss prevention](https://learn.microsoft.com/en-us/purview/ai-entra-registered#data-loss-prevention-and-ai-interactions)). There is no documented `UploadFile` (or equivalent) `RestrictAccess` setting for this app type. Do not create a policy rule using an undocumented setting and assume it covers PDF, Office, archives, images, or encrypted files; the empty `protectionScopes/compute` result for `uploadFile` (`files: "none"`) confirms no applicable policy exists, not a misconfiguration.
+5. File content inspection is handled outside the app entirely, at the traffic layer, using Conditional Access App Control. See below.
 
 The policy is a content-inspection pilot, not an anonymous-recipient authorization policy. Production rules must reflect which information uploaders may publish through public links.
+
+## File uploads: Conditional Access App Control (Defender for Cloud Apps)
+
+Purview's `processContent` API has no documented file-upload action for Entra-registered apps (see item 4 above). Rather than build file-text extraction and a second Entra app to route around that gap, file uploads are inspected in-line by Microsoft Defender for Cloud Apps, using the same sensitive-information-type engine as the pilot rule above. This requires no change to SecureShare's code path for enforcement; it is entirely Entra ID and Defender portal configuration.
+
+Prerequisites: Microsoft Entra ID P1 and a Defender for Cloud Apps license (both included in Microsoft 365 E5), and an account with the Conditional Access Administrator role plus Defender for Cloud Apps session policy permissions.
+
+1. **Conditional Access policy** (Entra admin center > Protection > Conditional Access > Policies > New policy):
+   - Target resource: the SecureShare app registration (app ID `95e7854e-9206-40eb-b8a1-a9d3583e8141`). Entra ID apps are auto-onboarded to Conditional Access App Control; no manual onboarding step is needed.
+   - Users: start scoped to a pilot group, not All users.
+   - Session > **Use Conditional Access App Control** > select **Use custom policy** (routes the session through Defender for Cloud Apps).
+   - Leave **Enable policy** on **Report-only** until step 3 passes.
+2. **Session policy** (Defender portal > Cloud Apps > Policies > Policy management > Create policy > Session policy):
+   - Session control type: **Control file upload (with inspection)**.
+   - App filter: SecureShare (Automated Azure AD onboarding).
+   - Apply to: Data classification services (reuse the Credit Card Number sensitive information type), and optionally Malware detection.
+   - Action: **Block**. Do not enable "Always apply the selected action even if the data cannot be scanned" until false-positive behavior on unscannable files (encrypted archives, unsupported types) has been reviewed; that setting fails closed, which is the correct default, but changes what users see.
+3. **Test before enforcing.** Move the Conditional Access policy from Report-only to On only after confirming in the Defender portal's Conditional Access App Control traffic log that sign-ins are being routed and inspected.
+   - Microsoft Edge sessions use in-browser protection with no reverse proxy. Other browsers are redirected through a reverse proxy (the address bar shows a `*.mcas.ms` suffix). Test both.
+   - SecureShare sends a strict CSP (`default-src 'self'; script-src 'self'; ...`, in `src/server.ts`). The reverse-proxy path rewrites the page and may not function correctly under this CSP for non-Edge browsers. Verify the upload page and the `fetch()`-based upload call still work end to end under the proxied session before enforcing; if broken, relax the CSP only as far as required and re-test, rather than removing it.
+   - Confirm the actual upload request (not just page navigation) is intercepted and blocked for a synthetic credit-card test file, and that a harmless file still uploads.
+4. Session controls apply only to browser-based sessions. A client that calls `/api/upload` directly (bypassing the browser session) is not covered by this control; SecureShare's existing authentication and rate limiting are the relevant controls for that path, not Purview or Defender for Cloud Apps.
+
+Reference: [Conditional Access app control](https://learn.microsoft.com/en-us/defender-cloud-apps/proxy-intro-aad), [Create session policies](https://learn.microsoft.com/en-us/defender-cloud-apps/session-policy-aad).
 
 Review any required Purview pay-as-you-go configuration under [Purview billing](https://learn.microsoft.com/en-us/purview/purview-billing-models); Microsoft 365 E5 alone is not evidence that custom-app API usage is unmetered.
 
