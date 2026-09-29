@@ -42,7 +42,9 @@ fetch("/api/me").then(r => r.json()).then(u => {
   if (u.linkTtlDays) document.getElementById("ttl").textContent = `Links expire after ${u.linkTtlDays} days`;
   if (u.auditor) document.getElementById("activity-link").hidden = false;
   if (u.minPasswordLength) minPasswordLength = u.minPasswordLength;
-  pwHint.textContent = `At least ${minPasswordLength} characters. The recipient will need it to download the file.`;
+  pwHint.textContent =
+    `At least ${minPasswordLength} characters. Save it somewhere safe: it cannot be changed or recovered later ` +
+    `— if it's lost, upload the file again and share the new link.`;
 });
 
 // ---- Your uploads ----
@@ -192,7 +194,8 @@ function upload(file) {
     document.getElementById("result-lock").hidden = !data.passwordProtected;
     document.getElementById("link").value = data.link;
     document.getElementById("note").textContent =
-      `${data.note} Expires ${new Date(data.expiresAt).toLocaleString()}.`;
+      `${data.note} Expires ${new Date(data.expiresAt).toLocaleString()}.` +
+      (data.passwordProtected ? " Make sure you saved the password — it can't be changed or recovered; a lost password means uploading again and sharing a new link." : "");
     result.style.display = "block";
     fileInput.value = "";
     pwToggle.checked = false;
