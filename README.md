@@ -293,7 +293,7 @@ For local development the tables are created on startup if they do not exist, us
 * Scan states: malicious → 403 and immediate deletion, in every mode. With `SCAN_POLICY=required` (default) nothing is served without an exact "No threats found" verdict: pending → 503 wait page; not scanned, scan error, monthly scan cap reached, or any tag value this code does not recognize → 403. `SCAN_POLICY=best-effort` serves after `SCAN_GRACE_MINUTES` without a verdict and is only for environments where a stranded link is worse than an unscanned download; every such download is logged
 * Sign in uses PKCE and a per attempt `state` value. The in flight verifier, state and return path live in a 10 minute HMAC signed cookie, not the session store, so anonymous requests allocate no server state. The session ID is regenerated after login; the `tid` claim is checked against the allowed tenants even in single tenant mode; sign ins without an `oid` claim are rejected
 * Cookies are httpOnly, SameSite Lax, Secure over HTTPS, and use the `__Host-` prefix over HTTPS so sibling subdomains cannot plant a cookie of the same name. State changing requests (POST, DELETE) must carry a same origin `Origin` / `Sec-Fetch-Site`, so a sibling subdomain (which is "same site" for SameSite purposes) cannot forge them either
-* Rate limits per client IP (the port App Service appends in X-Forwarded-For is stripped, so the limit is per client rather than per connection): `/auth/*` 30 per 10 min, `/api/upload` 40 per 15 min, `/d/*` 60 per min, everything 300 per min. Concurrent uploads are capped by `MAX_CONCURRENT_UPLOADS` because uploads are buffered in memory
+* Rate limits per client IP (the port App Service appends in X-Forwarded-For is stripped, so the limit is per client rather than per connection): `/auth/*` 30 per 10 min, `/api/upload` 40 per 15 min, `/d/*` 60 per min, everything 300 per min. Uploads stream straight to blob storage rather than buffering in memory; `MAX_CONCURRENT_UPLOADS` just caps how many can be in flight at once
 * The Entra callback never renders `error_description`: known error codes map to fixed text, so the page cannot be used to put attacker chosen text on this domain. User supplied strings are stripped of control characters before logging
 * Every download is logged with a short hash of the token, the client IP and user agent; the token itself never appears in application logs
 * Uploads are capped (default 100 MB, `MAX_UPLOAD_MB`). Defender on upload scanning currently covers files up to 2 GB
@@ -319,7 +319,7 @@ For local development the tables are created on startup if they do not exist, us
 | `SESSION_SECRET` | required | Cookie signing secret, 32+ random characters |
 | `PORT` | `3000` | Listen port (App Service sets this) |
 | `MAX_UPLOAD_MB` | `100` | Upload size limit |
-| `MAX_CONCURRENT_UPLOADS` | `4` | In flight upload cap; worst case memory is this times `MAX_UPLOAD_MB` |
+| `MAX_CONCURRENT_UPLOADS` | `4` | Cap on simultaneous in flight uploads (streamed to storage, not memory bound) |
 | `LINK_TTL_DAYS` | `7` | Link lifetime; keep in sync with the lifecycle policy `TTL_DAYS` |
 | `SCAN_POLICY` | `required` | `required` fails closed; `best-effort` serves after the grace period without a verdict |
 | `SCAN_GRACE_MINUTES` | `2` | How long best-effort waits for a Defender verdict before serving |

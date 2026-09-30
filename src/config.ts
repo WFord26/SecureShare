@@ -69,7 +69,8 @@ export const config = {
   sessionSecret: required("SESSION_SECRET"),
   port: num("PORT", 3000),
   maxUploadBytes: num("MAX_UPLOAD_MB", 100) * 1024 * 1024,
-  // Uploads are buffered in memory, so this bounds worst case memory at MAX_CONCURRENT_UPLOADS * MAX_UPLOAD_MB
+  // Uploads stream straight to blob storage rather than buffering in memory, so this is just a
+  // ceiling on simultaneous in-flight uploads, not a memory bound.
   maxConcurrentUploads: num("MAX_CONCURRENT_UPLOADS", 4),
   linkTtlDays,
   linkTtlMs: linkTtlDays * 24 * 60 * 60 * 1000,

@@ -155,8 +155,10 @@ function upload(file) {
   prog.value = 0;
 
   const form = new FormData();
-  form.append("file", file);
+  // Password field must precede the file field: the server streams the file straight to storage
+  // and needs the password already in hand before that starts.
   if (password) form.append("password", password);
+  form.append("file", file);
 
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/upload");

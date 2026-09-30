@@ -1,7 +1,14 @@
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import { DefaultAzureCredential } from "@azure/identity";
 import crypto from "crypto";
+import { Readable, Transform } from "stream";
 import { config } from "./config";
+
+// Chunk size and parallelism the Azure SDK uses while staging blocks for a streamed upload. This
+// bounds memory per upload to roughly UPLOAD_STREAM_BUFFER_BYTES * UPLOAD_STREAM_CONCURRENCY,
+// independent of the file's total size (unlike buffering the whole file, which this replaced).
+const UPLOAD_STREAM_BUFFER_BYTES = 4 * 1024 * 1024;
+const UPLOAD_STREAM_CONCURRENCY = 4;
 
 // Blob index tag written by Microsoft Defender for Storage on upload malware scanning.
 // Documented values: "No threats found", "Malicious", "Not scanned", "Error" (error values may carry
@@ -71,7 +78,7 @@ export function parseScanTag(value: string | undefined): ScanStatus {
 }
 
 export async function uploadFile(
-  buffer: Buffer,
+  fileStream: NodeJS.ReadableStream,
   originalName: string,
   contentType: string,
   uploadedBy: string,
@@ -81,7 +88,20 @@ export async function uploadFile(
   const token = newToken();
   const now = new Date();
   const blob = container.getBlockBlobClient(token);
-  await blob.uploadData(buffer, {
+
+  let size = 0;
+  const counter = new Transform({
+    transform(chunk: Buffer, _enc, cb) {
+      size += chunk.length;
+      cb(null, chunk);
+    },
+  });
+  // pipe() only forwards 'end', not 'error', so a failed source (client disconnect, busboy parse
+  // error) has to be forwarded by hand or uploadStream would hang waiting for a source that died.
+  fileStream.on("error", (err) => counter.destroy(err));
+  (fileStream as Readable).pipe(counter);
+
+  await blob.uploadStream(counter, UPLOAD_STREAM_BUFFER_BYTES, UPLOAD_STREAM_CONCURRENCY, {
     blobHTTPHeaders: { blobContentType: contentType || "application/octet-stream" },
     metadata: {
       // Base64 encode to keep arbitrary filenames valid as metadata values
@@ -98,7 +118,7 @@ export async function uploadFile(
     token,
     originalName,
     contentType,
-    size: buffer.length,
+    size,
     uploadedBy,
     uploaderOid,
     uploadedAt: now,

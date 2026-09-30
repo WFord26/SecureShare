@@ -1,7 +1,8 @@
 import express, { ErrorRequestHandler, Request, Response, NextFunction } from "express";
 import session from "express-session";
-import multer from "multer";
+import busboy from "busboy";
 import path from "path";
+import { Readable } from "stream";
 import rateLimit from "express-rate-limit";
 import { config } from "./config";
 import { authRouter, requireAuth, requireAuthApi, requireAuditor, isAuditor, purviewSupported } from "./auth";
@@ -118,12 +119,9 @@ app.get("/admin.js", requireAuditor, (_req, res) => {
 });
 app.use(adminRouter);
 
-// Upload endpoint (authenticated). Files are buffered in memory, so concurrency is capped to bound
-// worst case memory at MAX_CONCURRENT_UPLOADS * MAX_UPLOAD_MB.
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: config.maxUploadBytes, files: 1, fields: 5, fieldSize: 1024, parts: 10 },
-});
+// Upload endpoint (authenticated). The file part is streamed straight to blob storage rather than
+// buffered in memory, so memory use no longer scales with file size; concurrency is still capped as
+// a sane ceiling on simultaneous in-flight uploads.
 let uploadsInFlight = 0;
 
 app.post("/api/upload", requireAuthApi, (req, res) => {
@@ -142,49 +140,119 @@ app.post("/api/upload", requireAuthApi, (req, res) => {
   res.on("finish", release);
   res.on("close", release);
 
-  upload.single("file")(req, res, async (err) => {
-    if (err) {
-      const tooBig = err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE";
-      return res
-        .status(tooBig ? 413 : 400)
-        .json({ error: tooBig ? `File exceeds the ${config.maxUploadBytes / 1024 / 1024} MB limit` : "Upload failed" });
+  let responded = false;
+  let currentFileStream: Readable | null = null;
+  let uploadPromise: Promise<FileMeta> | null = null;
+
+  // Cleanly ends the request no matter which stage it fails at. If a file is already streaming to
+  // blob storage, tearing down its stream propagates into storage.uploadFile's error handling
+  // (src/storage.ts) so the in-progress Azure upload aborts instead of hanging on a dead source.
+  const fail = (status: number, error: string, cause?: unknown) => {
+    if (responded) return;
+    responded = true;
+    if (currentFileStream) currentFileStream.destroy(cause instanceof Error ? cause : new Error(error));
+    if (uploadPromise) uploadPromise.catch(() => {});
+    req.unpipe();
+    req.resume(); // drain the rest of the request body so the socket doesn't hang
+    res.status(status).json({ error });
+  };
+
+  let bb: busboy.Busboy;
+  try {
+    bb = busboy({ headers: req.headers, limits: { fileSize: config.maxUploadBytes, files: 1, fields: 5, fieldSize: 1024, parts: 10 } });
+  } catch {
+    return fail(400, "Upload failed");
+  }
+
+  // Optional download password. An empty field means no password. Only its scrypt hash is kept.
+  // The client (public/app.js) sends the password field before the file field on purpose: busboy
+  // parses parts in stream order, so this guarantees `password` is already known by the time the
+  // 'file' event fires below.
+  let password = "";
+  let fileSeen = false;
+  let tooBig = false;
+  let passwordTooLate = false;
+
+  bb.on("field", (name, value) => {
+    if (name !== "password") return;
+    // A password field can't retroactively apply to an upload already streaming to storage. Rather
+    // than tear that upload down mid-flight, let it finish and reject it once it's safe to do so.
+    if (fileSeen) {
+      passwordTooLate = true;
+      return;
     }
-    if (!req.file) return res.status(400).json({ error: "No file provided" });
-    // Optional download password. An empty field means no password. Only its scrypt hash is kept.
-    const body = (req.body ?? {}) as Record<string, unknown>;
-    const password = typeof body.password === "string" ? body.password : "";
+    password = value;
+  });
+
+  bb.on("file", (name, fileStream, info) => {
+    if (name !== "file" || fileSeen) {
+      fileStream.resume(); // discard anything we don't recognize or a second file part
+      return;
+    }
+    fileSeen = true;
+
     if (password) {
       const problem = validatePassword(password);
-      if (problem) return res.status(400).json({ error: problem });
+      if (problem) {
+        fileStream.resume();
+        return fail(400, problem);
+      }
     }
-    try {
+
+    fileStream.on("limit", () => {
+      tooBig = true;
+    });
+    currentFileStream = fileStream;
+
+    uploadPromise = (async () => {
       const passwordHash = password ? await hashPassword(password) : undefined;
-      const meta = await uploadFile(
-        req.file.buffer,
-        req.file.originalname,
-        req.file.mimetype,
-        req.session.user!.email,
-        req.session.user!.oid,
-        passwordHash
-      );
-      console.log(`Upload by ${logSafe(meta.uploadedBy)}: "${logSafe(meta.originalName)}" ${meta.size} bytes, token ${tokenRef(meta.token)}, expires ${meta.expiresAt.toISOString()}${passwordHash ? ", password protected" : ""}`);
+      return uploadFile(fileStream, info.filename, info.mimeType, req.session.user!.email, req.session.user!.oid, passwordHash);
+    })();
+  });
+
+  bb.on("error", (err) => {
+    console.error("Upload parse error:", err);
+    fail(400, "Upload failed", err);
+  });
+
+  req.on("aborted", () => {
+    bb.destroy();
+    fail(400, "Upload failed", new Error("Request aborted"));
+  });
+
+  bb.on("close", async () => {
+    if (responded) return;
+    if (!fileSeen || !uploadPromise) return fail(400, "No file provided");
+    try {
+      const meta = await uploadPromise;
+      if (tooBig || passwordTooLate) {
+        await deleteFile(meta.token).catch(() => {});
+        return tooBig
+          ? fail(413, `File exceeds the ${config.maxUploadBytes / 1024 / 1024} MB limit`)
+          : fail(400, "Upload failed");
+      }
+      console.log(`Upload by ${logSafe(meta.uploadedBy)}: "${logSafe(meta.originalName)}" ${meta.size} bytes, token ${tokenRef(meta.token)}, expires ${meta.expiresAt.toISOString()}${meta.passwordHash ? ", password protected" : ""}`);
       audit.recordUpload(meta, req.session.user!, clientIp(req.ip));
+      responded = true;
       res.json({
         link: `${config.baseUrl}/d/${meta.token}`,
         fileName: meta.originalName,
         size: meta.size,
         expiresAt: meta.expiresAt.toISOString(),
-        passwordProtected: !!passwordHash,
+        passwordProtected: !!meta.passwordHash,
         note:
           config.scanPolicy === "required"
             ? "File is being scanned for malware. The link works once the scan finds no threats."
             : "File is being scanned for malware. The link works within a couple of minutes.",
       });
     } catch (e) {
+      if (responded) return; // already handled via fail() (e.g. aborted or errored mid-upload)
       console.error("Upload error:", e);
-      res.status(500).json({ error: "Storage error during upload" });
+      fail(500, "Storage error during upload");
     }
   });
+
+  req.pipe(bb);
 });
 
 /** Can this file be downloaded right now under the configured scan policy? */
