@@ -325,3 +325,19 @@ For local development the tables are created on startup if they do not exist, us
 | `SCAN_GRACE_MINUTES` | `2` | How long best-effort waits for a Defender verdict before serving |
 | `AUDIT_RETENTION_DAYS` | `730` | Days activity log records are kept |
 | `AUDIT_ROLE` | `Audit.Read` | App role value that opens the activity log page |
+
+## Versioning and changelog
+
+Notable changes are recorded in [CHANGELOG.md](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format), and the app follows [Semantic Versioning](https://semver.org/). As you make a change, add a bullet under `## [Unreleased]` in the right `### Added` / `### Changed` / `### Fixed` / `### Removed` / `### Security` section.
+
+To cut a release:
+
+```bash
+npm run bump          # infers patch/minor/major from what's under [Unreleased]
+npm run bump -- minor # or force a specific level
+npm run bump:dry       # preview without writing
+git add -A && git commit -m "chore: release v<version>"
+npm run bump:tag && git push origin main --follow-tags
+```
+
+The inferred level: a `### Removed` section or a `BREAKING CHANGE` marker is major, `### Added` is minor, anything else (`Changed`/`Fixed`/`Security`/`Deprecated`) is patch. `npm run bump:tag` refuses on a dirty working tree since the tag must point at the commit that carries the version bump.

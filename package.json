@@ -6,7 +6,15 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "bump": "node scripts/bump-version.mjs",
+    "bump:patch": "npm run bump -- patch",
+    "bump:minor": "npm run bump -- minor",
+    "bump:major": "npm run bump -- major",
+    "bump:dry": "npm run bump -- --dry-run",
+    "bump:tag": "node scripts/bump-version.mjs --tag",
+    "test": "npm run test:bump",
+    "test:bump": "node --test scripts/bump-version.test.mjs"
   },
   "engines": {
     "node": ">=20"
