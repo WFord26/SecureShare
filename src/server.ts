@@ -2,6 +2,7 @@ import express, { ErrorRequestHandler, Request, Response, NextFunction } from "e
 import session from "express-session";
 import busboy from "busboy";
 import path from "path";
+import { randomUUID } from "crypto";
 import { Readable } from "stream";
 import rateLimit from "express-rate-limit";
 import { config } from "./config";
@@ -125,6 +126,18 @@ app.use(adminRouter);
 let uploadsInFlight = 0;
 
 app.post("/api/upload", requireAuthApi, (req, res) => {
+  const uploadId = randomUUID();
+  const startedAt = Date.now();
+  res.setHeader("X-Upload-Id", uploadId);
+  const diagnostic = () => `upload=${uploadId} elapsedMs=${Date.now() - startedAt} complete=${req.complete}`;
+  console.log(`Upload started: ${diagnostic()}`);
+  res.on("finish", () => console.log(`Upload response: ${diagnostic()} status=${res.statusCode}`));
+  res.on("close", () => {
+    if (!res.writableFinished) console.warn(`Upload response closed: ${diagnostic()}`);
+  });
+  req.on("error", (err: NodeJS.ErrnoException) => {
+    console.warn(`Upload connection error: ${diagnostic()} code=${logSafe(err.code ?? "unknown")}`);
+  });
   if (uploadsInFlight >= config.maxConcurrentUploads) {
     res.setHeader("Retry-After", "10");
     return res.status(503).json({ error: "The server is busy with other uploads. Try again in a moment." });
@@ -208,14 +221,21 @@ app.post("/api/upload", requireAuthApi, (req, res) => {
       const passwordHash = password ? await hashPassword(password) : undefined;
       return uploadFile(fileStream, info.filename, info.mimeType, req.session.user!.email, req.session.user!.oid, passwordHash);
     })();
+    // Observe failures while the multipart request is still arriving.
+    void uploadPromise.catch((e) => {
+      if (responded) return; // Already logged an abort or parse failure.
+      console.error(`Upload storage error: ${diagnostic()}`, e);
+      fail(500, "Storage error during upload", e);
+    });
   });
 
   bb.on("error", (err) => {
-    console.error("Upload parse error:", err);
+    console.error(`Upload parse error: ${diagnostic()}`, err);
     fail(400, "Upload failed", err);
   });
 
   req.on("aborted", () => {
+    console.warn(`Upload aborted: ${diagnostic()}`);
     bb.destroy();
     fail(400, "Upload failed", new Error("Request aborted"));
   });
@@ -543,11 +563,15 @@ async function main() {
     console.error("Activity log check failed (nothing will be recorded until fixed; check Storage Table Data Contributor role):", (e as Error).message);
   }
   audit.startRetentionPurge();
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, () => {
     console.log(`secureshare listening on ${config.baseUrl} (port ${config.port})`);
     console.log(`Auth: ${config.authorityHost}/${config.tenantId}` + (config.multiTenant ? ` allowed tenants: ${config.allowedTenantIds.join(", ")}` : ""));
     console.log(`Scan policy: ${config.scanPolicy}` + (config.scanPolicy === "best-effort" ? ` (serve after ${config.scanGraceMs / 60000} min without a verdict)` : ""));
+    console.log(`Request timeout: ${server.requestTimeout / 1000}s; upload limit: ${config.maxUploadBytes / 1024 / 1024} MB`);
   });
+  // Large streamed uploads can exceed Node's five-minute default. Keep a finite
+  // request deadline and leave the separate header timeout unchanged.
+  server.requestTimeout = config.requestTimeoutMs;
 }
 
 main();

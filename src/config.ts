@@ -68,6 +68,7 @@ export const config = {
   storageConnectionString: process.env.STORAGE_CONNECTION_STRING || undefined,
   sessionSecret: required("SESSION_SECRET"),
   port: num("PORT", 3000),
+  requestTimeoutMs: num("REQUEST_TIMEOUT_SECONDS", 1800, 60) * 1000,
   maxUploadBytes: num("MAX_UPLOAD_MB", 100) * 1024 * 1024,
   // Uploads stream straight to blob storage rather than buffering in memory, so this is just a
   // ceiling on simultaneous in-flight uploads, not a memory bound.

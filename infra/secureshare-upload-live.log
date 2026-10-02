@@ -1,0 +1,453 @@
+WARNING: 2026-10-02T16:44:40  Welcome, you are now connected to log-streaming service.
+WARNING: Starting Log Tail -n 10 of existing logs ----
+WARNING: 
+WARNING: /home/LogFiles/StartupLogs/README.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/README.txt)
+
+File naming: {date}_{machine}_{success|failure}.log
+
+  date     ??? The date the startup occurred (yyyy_MM_dd)
+  machine  ??? The VM instance that ran the container
+  success  ??? The container started and passed health checks
+  failure  ??? The container failed to start or did not pass health checks
+
+To disable these logs, add this app setting:
+  WEBSITE_DISABLE_CONTAINER_STARTUP_LOGS = true
+/home/LogFiles/kudu/deployment/215779e92546-2600828a-d173-4a35-a09a-5b91ebbf7a1f.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/deployment/215779e92546-2600828a-d173-4a35-a09a-5b91ebbf7a1f.txt)
+2026-10-01T18:24:54  Parsing the build logs
+2026-10-01T18:24:55  Found 0 issue(s)
+2026-10-01T18:24:55  
+2026-10-01T18:24:55  Build Summary :
+2026-10-01T18:24:55  ===============
+2026-10-01T18:24:55  Errors (0)
+2026-10-01T18:24:55  Warnings (0)
+2026-10-01T18:24:55  
+2026-10-01T18:24:56  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-10-01T18:24:56  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy
+/home/LogFiles/kudu/deployment/215779e92546-9d63d15b-bba5-40a5-87bd-037e4d35e0b3.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/deployment/215779e92546-9d63d15b-bba5-40a5-87bd-037e4d35e0b3.txt)
+2026-09-30T19:08:51  Parsing the build logs
+2026-09-30T19:08:52  Found 0 issue(s)
+2026-09-30T19:08:52  
+2026-09-30T19:08:52  Build Summary :
+2026-09-30T19:08:52  ===============
+2026-09-30T19:08:52  Errors (0)
+2026-09-30T19:08:52  Warnings (0)
+2026-09-30T19:08:53  
+2026-09-30T19:08:53  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-09-30T19:08:53  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy
+WARNING: /home/LogFiles/kudu/deployment/215779e92546-f0c377f6-d148-475d-aee1-c09cb1a4b276.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/deployment/215779e92546-f0c377f6-d148-475d-aee1-c09cb1a4b276.txt)
+WARNING: 2026-09-29T21:14:49  Parsing the build logs
+2026-09-29T21:14:49  Found 0 issue(s)
+2026-09-29T21:14:50  
+2026-09-29T21:14:50  Build Summary :
+2026-09-29T21:14:50  ===============
+2026-09-29T21:14:50  Errors (0)
+2026-09-29T21:14:50  Warnings (0)
+2026-09-29T21:14:50  
+2026-09-29T21:14:51  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-09-29T21:14:51  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy
+WARNING: /home/LogFiles/kudu/deployment/930157818e27-07a75df4-39f3-4d8a-ac30-373ba7b9612c.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/deployment/930157818e27-07a75df4-39f3-4d8a-ac30-373ba7b9612c.txt)
+WARNING: 2026-09-18T17:28:12  Parsing the build logs
+2026-09-18T17:28:12  Found 0 issue(s)
+2026-09-18T17:28:12  
+2026-09-18T17:28:12  Build Summary :
+2026-09-18T17:28:13  ===============
+2026-09-18T17:28:13  Errors (0)
+2026-09-18T17:28:13  Warnings (0)
+2026-09-18T17:28:13  
+2026-09-18T17:28:13  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-09-18T17:28:14  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy
+/home/LogFiles/kudu/deployment/930157818e27-9690fb08-5195-4835-a9f0-2f148d07d212.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/deployment/930157818e27-9690fb08-5195-4835-a9f0-2f148d07d212.txt)
+WARNING: 2026-09-18T17:01:30  Parsing the build logs
+2026-09-18T17:01:30  Found 0 issue(s)
+2026-09-18T17:01:30  
+2026-09-18T17:01:30  Build Summary :
+2026-09-18T17:01:31  ===============
+2026-09-18T17:01:31  Errors (0)
+2026-09-18T17:01:31  Warnings (0)
+2026-09-18T17:01:31  
+2026-09-18T17:01:31  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-09-18T17:01:32  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy
+/home/LogFiles/kudu/deployment/930157818e27-cfbd5790-2cc3-4e84-8769-0340fbf1f8ce.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/deployment/930157818e27-cfbd5790-2cc3-4e84-8769-0340fbf1f8ce.txt)
+2026-09-17T20:32:46  Parsing the build logs
+2026-09-17T20:32:47  Found 0 issue(s)
+2026-09-17T20:32:47  
+2026-09-17T20:32:47  Build Summary :
+2026-09-17T20:32:47  ===============
+2026-09-17T20:32:47  Errors (0)
+2026-09-17T20:32:48  Warnings (0)
+2026-09-17T20:32:48  
+2026-09-17T20:32:48  Triggering container recycle for OneDeploy by adding/updating restartTrigger.txt to the site root path
+2026-09-17T20:32:48  Deployment successful. deployer = OneDeploy deploymentPath = OneDeploy
+/home/LogFiles/kudu/trace/215779e92546-4720a871-5343-41a7-a7d5-ddb2975c0e4b.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/trace/215779e92546-4720a871-5343-41a7-a7d5-ddb2975c0e4b.txt)
+2026-09-29T21:13:12  Startup Request, url: /api/deployments?warmup=true, method: GET, type: request, pid: 731,1,7, ScmType: None, SCM_DO_BUILD_DURING_DEPLOYMENT: true
+/home/LogFiles/kudu/trace/930157818e27-69facdb0-1d22-4f6f-8031-a4f94ae8feef.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/trace/930157818e27-69facdb0-1d22-4f6f-8031-a4f94ae8feef.txt)
+2026-09-18T22:51:25    Error occurred, type: error, text: LogStreamManager: Inside TerminateClient
+2026-09-18T22:51:25    Error occurred, type: error, text: LogStreamManager: Inside Reset
+2026-09-18T22:51:26    Error occurred, type: error, text: LogStreamManager: ProcessRequest end due to timeout
+2026-09-18T22:51:26  Error occurred, type: error, text: LogStreamManager: Inside Reset
+/home/LogFiles/kudu/trace/930157818e27-a9f063e0-afae-48a1-b368-9d3788933eb2.txt  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/kudu/trace/930157818e27-a9f063e0-afae-48a1-b368-9d3788933eb2.txt)
+2026-09-17T20:30:23  Startup Request, url: /api/deployments?warmup=true, method: GET, type: request, pid: 733,1,15, ScmType: None, SCM_DO_BUILD_DURING_DEPLOYMENT: true
+/home/LogFiles/2026_09_30_lw0sdlwk000EGW_default_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_09_30_lw0sdlwk000EGW_default_docker.log)
+2026-09-30T19:10:03.6836704Z npm info using node@v24.18.0
+2026-09-30T19:10:09.1390915Z 
+2026-09-30T19:10:09.1391368Z > secureshare@1.1.0 start
+2026-09-30T19:10:09.1391393Z > node dist/server.js
+2026-09-30T19:10:09.1391477Z 
+2026-09-30T19:10:16.8321374Z Storage OK: https://stsecureshare3tr5rfce3sv.blob.core.windows.net/uploads
+2026-09-30T19:10:16.8928128Z Activity log OK: tables uploadlog, downloadlog (retention 730 days)
+2026-09-30T19:10:16.8949550Z secureshare listening on https://share.paxcenters.com (port 8080)
+2026-09-30T19:10:16.8953196Z Auth: https://login.microsoftonline.com/9c57873b-e249-4b43-a51e-dbc5b920310b
+2026-09-30T19:10:16.8953926Z Scan policy: required
+/home/LogFiles/2026_09_30_lw0sdlwk000EGW_default_scm_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_09_30_lw0sdlwk000EGW_default_scm_docker.log)
+2026-09-30T19:08:49.8843277Z Copying files to destination directory '/home/site/wwwroot'...
+2026-09-30T19:08:50.7610390Z Copying to destination directory done in 1 sec(s).
+2026-09-30T19:08:50.8203691Z Total time for destination directory preparation done in 1 sec(s).
+2026-09-30T19:08:50.8453609Z 
+2026-09-30T19:08:50.8807526Z Removing existing manifest file
+2026-09-30T19:08:50.8958579Z Creating a manifest file...
+2026-09-30T19:08:50.9137864Z Manifest file 
+WARNING: created.
+2026-09-30T19:08:50.9279394Z Generating .ostype from OS_FLAVOR environment variable.
+2026-09-30T19:08:50.9867219Z 
+2026-09-30T19:08:51.0147507Z Total execution done in 60 sec(s).
+/home/LogFiles/2026_09_30_lw0sdlwk000EGW_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_09_30_lw0sdlwk000EGW_docker.log)
+2026-09-30T19:09:27.3269671Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-09-30T19:10:17.5978569Z Site startup probe succeeded after 50.1892684 seconds.
+2026-09-30T19:10:17.9796013Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 50.1892684 seconds., DetailsLevel: INFO
+2026-09-30T19:10:19.5244733Z Site is running with deployment version: fec011ec-00bd-4ce1-9743-8fb704f645da
+2026-09-30T19:10:19.5257589Z Site started.
+2026-09-30T19:10:19.5259884Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/30/2026 19:10:19 (UTC), DetailsLevel: INFO
+2026-09-30T19:10:19.5370612Z Site is running with patch version NODE-24.18.0
+2026-09-30T19:10:40.0836307Z State: Stopping, Action: StoppingSite, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/29/2026 21:16:13 (UTC), DetailsLevel: INFO
+2026-09-30T19:10:40.1157742Z State: Stopping, Action: StoppingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/29/2026 21:16:13 (UTC), DetailsLevel: INFO
+2026-09-30T19:10:47.6805339Z Site: secureshare-3tr5rfce3svuo stopped.
+/home/LogFiles/2026_10_01_lw0sdlwk000EGW_default_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_10_01_lw0sdlwk000EGW_default_docker.log)
+2026-10-01T20:33:23.6578375Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-01T20:33:23.6578421Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-01T20:33:23.6578437Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-01T20:33:23.6578453Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-01T20:33:23.6578468Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-01T20:33:23.6578485Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-01T20:33:23.6578500Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-01T20:33:23.6578514Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-01T20:33:23.6578530Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-01T20:33:23.6578544Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+/home/LogFiles/2026_10_01_lw0sdlwk000EGW_default_scm_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_10_01_lw0sdlwk000EGW_default_scm_docker.log)
+2026-10-01T18:24:53.4208455Z Copying files to destination directory '/home/site/wwwroot'...
+2026-10-01T18:24:53.6472590Z Copying to destination directory done in 0 sec(s).
+2026-10-01T18:24:53.6972925Z Total time for destination directory preparation done in 0 sec(s).
+2026-10-01T18:24:53.7378646Z 
+2026-10-01T18:24:53.7836580Z Removing existing manifest file
+2026-10-01T18:24:53.8085378Z Creating a manifest file...
+2026-10-01T18:24:53.8511739Z Manifest file created.
+2026-10-01T18:24:53.8694311Z Generating .ostype from OS_FLAVOR environment variable.
+2026-10-01T18:24:53.8809938Z 
+2026-10-01T18:24:53.8975683Z Total execution done in 55 sec(s).
+/home/LogFiles/2026_10_01_lw0sdlwk000EGW_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_10_01_lw0sdlwk000EGW_docker.log)
+2026-10-01T18:26:13.1815412Z Site is running with patch version NODE-24.18.0
+2026-10-01T18:26:33.41565
+WARNING: 59Z State: Stopping, Action: StoppingSite, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/30/2026 19:10:19 (UTC), DetailsLevel: INFO
+2026-10-01T18:26:33.4251411Z State: Stopping, Action: StoppingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/30/2026 19:10:19 (UTC), DetailsLevel: INFO
+2026-10-01T18:26:33.4258951Z Container is terminating. Grace period: 5 seconds.
+2026-10-01T18:26:33.6556533Z Stop and delete container. Retry count = 0
+2026-10-01T18:26:33.6584738Z Stopping container: b4332e846128_secureshare-3tr5rfce3svuo.
+2026-10-01T18:26:39.3888273Z Deleting container: b4332e846128_secureshare-3tr5rfce3svuo. Retry count = 0
+2026-10-01T18:26:41.2735407Z Container spec TerminationMessagePolicy  path 
+2026-10-01T18:26:41.2828330Z Container is terminated. Total time elapsed: 7820 ms.
+2026-10-01T18:26:42.2490275Z Site: secureshare-3tr5rfce3svuo stopped.
+/home/LogFiles/2026_10_02_lw0sdlwk000EGW_default_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_10_02_lw0sdlwk000EGW_default_docker.log)
+2026-10-02T16:40:28.8580241Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-02T16:40:28.8580339Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-02T16:40:28.8580355Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580373Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:40:28.8580389Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-02T16:40:28.8580406Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-02T16:40:28.8580420Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-02T16:40:28.8580434Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-02T16:40:28.8580450Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580465Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+/home/LogFiles/2026_10_02_lw0sdlwk000EGW_docker.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/2026_10_02_lw0sdlwk000EGW_docker.log)
+2026-10-02T16:44:38.1853103Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+/home/LogFiles/StartupLogs/2026_09_30_lw0sdlwk000EGW_success.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/2026_09_30_lw0sdlwk000EGW_success.log)
+2026-09-30T19:10:16.8321374+00:00 ContainerStream: Storage OK: https://stsecureshare3tr5rfce3sv.blob.core.windows.net/uploads
+2026-09-30T19:10:16.8928128+00:00 ContainerStream: Activity log OK: tables uploadlog, downloadlog (retention 730 days)
+2026-09-30T19:10:16.8949550+00:00 ContainerStream: secureshare listening on https://share.paxcenters.com (port 8080)
+2026-09-30T19:10:16.8953196+00:00 ContainerStream: Auth: https://login.microsoftonline.com/9c57873b-e249-4b43-a51e-dbc5b920310b
+2026-09-30T19:10:16.8953926+00:00 ContainerStream: Scan policy: required
+2026-09-30T19:10:17.5978569+00:00 ContainerStatus: Site startup probe succeeded after 50.1892684 seconds.
+2026-09-30T19:10:17.9796013+00:00 ContainerStatus: State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 50.1892684 seconds., DetailsLevel: INFO
+2026-09-30T19:10:19.5244733+00:00 ContainerStatus: Site is running with deployment version: fec011ec-00bd-4ce1-9743-8fb704f645da
+2026-09-30T19:10:19.5257589+00:00 ContainerStatus: Site started.
+2026-09-30T19:10:19.5259884+00:00 ContainerStatus: State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/30/2026 19:10:19 (UTC), DetailsLevel: INFO
+/home/LogFiles/StartupLogs/2026_10_01_lw0sdlwk000EGW_success.log  (https://secureshare-3tr5rfce3svuo.
+WARNING: scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/2026_10_01_lw0sdlwk000EGW_success.log)
+2026-10-01T18:26:11.7000632+00:00 ContainerStream: Activity log OK: tables uploadlog, downloadlog (retention 730 days)
+2026-10-01T18:26:11.7587505+00:00 ContainerStream: secureshare listening on https://share.paxcenters.com (port 8080)
+2026-10-01T18:26:11.7587713+00:00 ContainerStream: Auth: https://login.microsoftonline.com/9c57873b-e249-4b43-a51e-dbc5b920310b
+2026-10-01T18:26:11.7587736+00:00 ContainerStream: Scan policy: required
+2026-10-01T18:26:12.5854774+00:00 ContainerStatus: Site startup probe succeeded after 46.0620221 seconds.
+2026-10-01T18:26:12.7906932+00:00 ContainerStatus: State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 46.0620221 seconds., DetailsLevel: INFO
+2026-10-01T18:26:13.1772079+00:00 ContainerStatus: Site is running with deployment version: 42723faf-dea8-4b11-84f5-2bff565bec3a
+2026-10-01T18:26:13.1780771+00:00 ContainerStatus: Site started.
+2026-10-01T18:26:13.1781540+00:00 ContainerStatus: State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 10/01/2026 18:26:13 (UTC), DetailsLevel: INFO
+2026-10-01T18:26:13.1815412+00:00 ContainerStatus: Site is running with patch version NODE-24.18.0
+/home/LogFiles/StartupLogs/.sources/2026_09_30_lw0sdlwk000EGW_status.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/.sources/2026_09_30_lw0sdlwk000EGW_status.log)
+2026-09-30T19:10:19.5370612Z Site is running with patch version NODE-24.18.0
+2026-09-30T19:10:40.0836307Z State: Stopping, Action: StoppingSite, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00
+WARNING: , LastErrorDetails: , Details: Site started at 09/29/2026 21:16:13 (UTC), DetailsLevel: INFO
+2026-09-30T19:10:40.1157742Z State: Stopping, Action: StoppingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/29/2026 21:16:13 (UTC), DetailsLevel: INFO
+2026-09-30T19:10:47.6805339Z Site: secureshare-3tr5rfce3svuo stopped.
+/home/LogFiles/StartupLogs/.sources/2026_10_01_lw0sdlwk000EGW_containerStream.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/.sources/2026_10_01_lw0sdlwk000EGW_containerStream.log)
+2026-10-01T20:33:23.6578375Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-01T20:33:23.6578421Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-01T20:33:23.6578437Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-01T20:33:23.6578453Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-01T20:33:23.6578468Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-01T20:33:23.6578485Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-01T20:33:23.6578500Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-01T20:33:23.6578514Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-01T20:33:23.6578530Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-01T20:33:23.6578544Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+/home/LogFiles/StartupLogs/.sources/2026_10_01_lw0sdlwk000EGW_status.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/.sources/2026_10_01_lw0sdlwk000EGW_status.log)
+2026-10-01T18:26:33.4156559Z State: Stopping, Action: StoppingSite, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/30/2026 19:10:19 (UTC), DetailsLevel: INFO
+2026-10-01T18:26:33.4251411Z State: Stopping, Action: StoppingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 09/30/2026 19:10:19 (UTC), DetailsLevel: INFO
+2026-10-01T18:26:33.4258951Z Container is terminating. Grace period: 5 seconds.
+2026-10-01T18:26:33.6556533Z Stop and delete container. Retry count = 0
+2026-10-01T18:26:33.6584738Z Stopping container: b4332e846128_secureshare-3tr5rfce3svuo.
+2026-10-01T18:26:39.3888273Z Deleting container: b4332e846128_secureshare-3tr5rfce3svuo. Retry count = 0
+2026-10-01T18:26:41.2735407Z Container spec TerminationMessagePolicy  path 
+2026-10-01T18:26:41.2828330Z Container is terminated. Total time elapsed: 7820 ms.
+2026-10-01T18:26:42.2490275Z Site: secureshare-3tr5rfce3svuo stopped.
+/home/LogFiles/StartupLogs/.sources/2026_10_02_lw0sdlwk000EGW_containerStream.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/.sources/2026_10_02_lw0sdlwk000EGW_containerStream.log)
+2026-10-02T16:40:28.8580241Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-02T16:40:28.8580339Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-02T16:40:28.8580355Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580373Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:40:28.8580389Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-02T16:40:28.8580406Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-02T16:40:28.8580420Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-02T16:40:28.8580434Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-02T16:40:28.8580450Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580465Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+/home/LogFiles/StartupLogs/.sources/2026_10_02_lw0sdlwk000EGW_status.log  (https://secureshare-3tr5rfce3svuo.scm.azurewebsites.net/api/vfs/LogFiles/StartupLogs/.so
+WARNING: urces/2026_10_02_lw0sdlwk000EGW_status.log)
+2026-10-02T16:44:38.1853103Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+Ending Log Tail of existing logs ---
+Starting Live Log Stream ---
+2026-10-02T14:44:15.8605774Z Upload parse error: Error: Unexpected end of form
+2026-10-02T14:44:15.8607715Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-02T14:44:15.8607741Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-02T14:44:15.8607756Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T14:44:15.8607773Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T14:44:15.8607788Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-02T14:44:15.8607804Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-02T14:44:15.8607818Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-02T14:44:15.8607833Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-02T14:44:15.8607848Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T14:44:15.8607863Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:40:28.8552393Z Upload parse error: Error: Unexpected end of form
+2026-10-02T16:40:28.8580241Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-02T16:40:28.8580339Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-02T16:40:28.8580355Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580373Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:40:28.8580389Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-02T16:40:28.8580406Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-02T16:40:28.8580420Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-02T16:40:28.8580434Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-02T16:40:28.8580450Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580465Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:44:38.1853103Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-10-02T16:44:43.8248051Z State: Starting, Action: StartingMsiContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-10-02T14:44:15.8605774Z Upload parse error: Error: Unexpected end of form
+2026-10-02T14:44:15.8607715Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-02T14:44:15.8607741Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-02T14:44:15.8607756Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T14:44:15.8607773Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T14:44:15.8607788Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-02T14:44:15.8607804Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-02T14:44:15.8607818Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-02T14:44:15.8607833Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-02T14:44:15.8607848Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T14:44:15.8607863Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:40:28.8552393Z Upload parse error: Error: Unexpected end of form
+2026-10-02T16:40:28.8580241Z     at checkEndState (/node_modules/busboy/lib/types/multipart.js:612:12)
+2026-10-02T16:40:28.8580339Z     at Multipart._destroy (/node_modules/busboy/lib/types/multipart.js:576:13)
+2026-10-02T16:40:28.8580355Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T1
+WARNING: 6:40:28.8580373Z     at Multipart.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:40:28.8580389Z     at Writable.destroy (node:internal/streams/writable:1120:11)
+2026-10-02T16:40:28.8580406Z     at IncomingMessage.<anonymous> (/home/site/wwwroot/dist/server.js:236:12)
+2026-10-02T16:40:28.8580420Z     at IncomingMessage.emit (node:events:509:28)
+2026-10-02T16:40:28.8580434Z     at IncomingMessage._destroy (node:_http_incoming:244:10)
+2026-10-02T16:40:28.8580450Z     at _destroy (node:internal/streams/destroy:122:10)
+2026-10-02T16:40:28.8580465Z     at IncomingMessage.destroy (node:internal/streams/destroy:84:5)
+2026-10-02T16:44:38.1853103Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-10-02T16:44:43.8248051Z State: Starting, Action: StartingMsiContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+WARNING: 2026-10-02T16:44:55.1482914Z     __ __          __      __    _ __     
+2026-10-02T16:44:55.1484416Z    / //_/_  _ ____/ /_  __/ /   (_) /____ 
+2026-10-02T16:44:55.1484450Z   / ,< / / / / __  / / / / /   / / __/ _  
+2026-10-02T16:44:55.1484469Z  / /| / /_/ / /_/ / /_/ / /___/ / /_/  __/
+2026-10-02T16:44:55.1484483Z /_/ |_\__,_/\__,_/\__,_/_____/_/\__/\___/ 
+2026-10-02T16:44:55.1484499Z 
+2026-10-02T16:44:55.1484524Z                                           
+2026-10-02T16:44:55.1484590Z DEBUG CONSOLE | AZURE APP SERVICE ON LINUX
+2026-10-02T16:44:55.1484602Z 
+2026-10-02T16:44:55.1484619Z Documentation: http://aka.ms/webapp-linux
+2026-10-02T16:44:55.1484633Z Kudu Version : 20260818.3
+2026-10-02T16:44:55.1484650Z Commit       : 4fdde8f2c23d321ee994524d26985daee33139ec
+2026-10-02T16:44:55.1484665Z Instance Name: lw0sdlwk000EGW
+2026-10-02T16:44:55.1484683Z Instance Id  : d93a6dd9adfe613e2d2fd01c1017210e715ace5b2f0f2d4f627a2b9b4f10608e
+2026-10-02T16:44:55.1484696Z 
+WARNING: 2026-10-02T16:44:57.7422595Z chown: changing ownership of '/temp': Operation not permitted
+2026-10-02T16:44:57.7520972Z chmod: changing permissions of '/temp': Operation not permitted
+WARNING: 2026-10-02T16:45:22.1300274Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-10-02T16:45:22.1713507Z Container start method called.
+2026-10-02T16:45:22.1717238Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.5:13209/appsvc/node:24-lts_20260710.3.tuxprod for secureshare-3tr5rfce3svuo., DetailsLevel: INFO
+2026-10-02T16:45:22.1719671Z Establishing network.
+2026-10-02T16:45:22.1722954Z Pulling image: appsvc/node:24-lts_20260710.3.tuxprod.
+2026-10-02T16:45:22.1300274Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-10-02T16:45:22.1713507Z Container start method called.
+2026-10-02T16:45:22.1717238Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.5:13209/appsvc/node:24-lts_20260710.3.tuxprod for secureshare-3tr5rfce3svuo., DetailsLevel: INFO
+2026-10-02T16:45:22.1719671Z Establishing network.
+2026-10-02T16:45:22.1722954Z Pulling image: appsvc/node:24-lts_20260710.3.tuxprod.
+WARNING: 2026-10-02T16:45:22.8334410Z  * Restarting OpenBSD Secure Shell server sshd
+2026-10-02T16:45:23.0564442Z    ...done.
+2026-10-02T16:45:23.7594669Z node not running, starting node /opt/webssh/index.js
+2026-10-02T16:45:22.9552020Z Container is starting.
+2026-10-02T16:45:22.9563854Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for secureshare-3tr5rfce3svuo., DetailsLevel: INFO
+2026-10-02T16:45:22.9633973Z Establishing user namespace if not established already.
+2026-10-02T16:45:22.9636028Z Establishing network if not established already.
+2026-10-02T16:45:22.9636860Z Mounting volumes.
+2026-10-02T16:45:22.9658286Z Nested mountpoint 
+2026-10-02T16:45:22.9967792Z Nested mountpoint volatile/logs
+2026-10-02T16:45:23.1871780Z Nested mountpoint 
+2026-10-02T16:45:23.2077996Z Nested mountpoint 
+2026-10-02T16:45:23.5184718Z Nested mountpoint 
+2026-10-02T16:45:23.6681860Z Nested mountpoint 
+2026-10-02T16:45:25.0572436Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for secureshare-3tr5rfce3svuo. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-10-02T16:45:25.0573360Z Creating container.
+2026-10-02T16:45:25.0573915Z Creating pipes for streaming container io.
+2026-10-02T16:45:25.0574362Z Creating stdout named pipe at /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1567597Z Successfully created stdout named pipe at: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1569485Z Opening named pipe /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2 for reading in non-blocking mode.
+2026-10-02T16:45:25.1570503Z Successfully opened named pipe: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1571156Z Successfully removed non-blocking flag from /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1757519Z Creating stderr named pipe at /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1759661Z Successfully created stderr named pipe at: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1765979Z Opening named pipe /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f for reading in non-blocking mode.
+2026-10-02T16:45:25.1767019Z Successfully opened named pipe: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1768542Z Successfully removed non-blocking flag from /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1774084Z Creating container with image: appsvc/node:24-lts_20260710.3.tuxprod from registry: 10.1.0.5:13209 and fully qualified image name: 10.1.0.5:13209/appsvc/node:24-lts_20260710.3.tuxprod
+2026-10-02T16:45:22.9552020Z Container is starting.
+2026-10-02T16:45:22.9563854Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for secureshare-3tr5rfce3svuo., DetailsLevel: INFO
+2026-10-02T16:45:22.9633973Z Establishing user namespace if not established already.
+2026-10-02T16:45:22.9636028Z Establishing network if not established already.
+2026-10-02T16:45:22.9636860Z Mounting volumes.
+2026-10-02T16:45:22.9658286Z Nested mountpoint 
+2026-10-02T16:45:22.9967792Z Nested mountpoint volatile/logs
+2026-10-02T16:45:23.1871780Z Nested mountpoint 
+2026-10-02T16:45:23.2077996Z Nested mountpoint 
+2026-10-02T16:45:23.5184718Z Nested 
+WARNING: mountpoint 
+2026-10-02T16:45:23.6681860Z Nested mountpoint 
+2026-10-02T16:45:25.0572436Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for secureshare-3tr5rfce3svuo. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-10-02T16:45:25.0573360Z Creating container.
+2026-10-02T16:45:25.0573915Z Creating pipes for streaming container io.
+2026-10-02T16:45:25.0574362Z Creating stdout named pipe at /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1567597Z Successfully created stdout named pipe at: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1569485Z Opening named pipe /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2 for reading in non-blocking mode.
+2026-10-02T16:45:25.1570503Z Successfully opened named pipe: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1571156Z Successfully removed non-blocking flag from /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stdout_efa02d3d2b3647fba8fc8191c704a7a2.
+2026-10-02T16:45:25.1757519Z Creating stderr named pipe at /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1759661Z Successfully created stderr named pipe at: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1765979Z Opening named pipe /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f for reading in non-blocking mode.
+2026-10-02T16:45:25.1767019Z Successfully opened named pipe: /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1768542Z Successfully removed non-blocking flag from /podr/container/pipe/e487035ce50c_secureshare-3tr5rfce3svuo/stderr_ae966d714f45441eaa55199c43d6930f.
+2026-10-02T16:45:25.1774084Z Creating container with image: appsvc/node:24-lts_20260710.3.tuxprod from registry: 10.1.0.5:13209 and fully qualified image name: 10.1.0.5:13209/appsvc/node:24-lts_20260710.3.tuxprod
+WARNING: 2026-10-02T16:45:29.0154930Z    _____                               
+2026-10-02T16:45:29.0340560Z   /  _  \ __________ _________   ____  
+2026-10-02T16:45:29.0340792Z  /  /_\  \\___   /  |  \_  __ \_/ __ \ 
+2026-10-02T16:45:29.0340812Z /    |    \/    /|  |  /|  | \/\  ___/ 
+2026-10-02T16:45:29.0340829Z \____|__  /_____ \____/ |__|    \___  >
+2026-10-02T16:45:29.0340846Z         \/      \/                  \/ 
+2026-10-02T16:45:29.0340873Z A P P   S E R V I C E   O N   L I N U X
+2026-10-02T16:45:29.0340889Z 
+2026-10-02T16:45:29.0340959Z Documentation    : http://aka.ms/webapp-linux
+2026-10-02T16:45:29.0340979Z NodeJS quickstart: https://aka.ms/node-qs
+2026-10-02T16:45:29.0340999Z NodeJS Version   : v24.18.0
+2026-10-02T16:45:29.0341019Z Instance Name    : lw0sdlwk000EGW
+2026-10-02T16:45:29.0341050Z Instance Id      : d93a6dd9adfe613e2d2fd01c1017210e715ace5b2f0f2d4f627a2b9b4f10608e
+2026-10-02T16:45:29.0341066Z 
+2026-10-02T16:45:29.0341085Z Note: Any data outside '/home' is not persisted
+WARNING: 2026-10-02T16:45:27.6780356Z Starting container: e487035ce50c_secureshare-3tr5rfce3svuo.
+2026-10-02T16:45:27.8285067Z Starting watchers and probes.
+2026-10-02T16:45:27.8306823Z Starting metrics collection.
+2026-10-02T16:45:27.8308893Z Container is running.
+2026-10-02T16:45:27.8310632Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container secureshare-3tr5rfce3svuo successfully created and is running., DetailsLevel: INFO
+2026-10-02T16:45:28.3230814Z Container start method finished after 6151 ms.
+2026-10-02T16:45:28.3232086Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container secureshare-3tr5rfce3svuo successfully created and is running., DetailsLevel: INFO
+2026-10-02T16:45:28.3232236Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+WARNING: 2026-10-02T16:45:29.0154930Z    _____                               
+2026-10-02T16:45:29.0340560Z   /  _  \ __________ _________   ____  
+2026-10-02T16:45:29.0340792Z  /  /_\  \\___   /  |  \_  __ \_/ __ \ 
+2026-10-02T16:45:29.0340812Z /    |    \/    /|  |  /|  | \/\  ___/ 
+2026-10-02T16:45:29.0340829Z \____|__  /_____ \____/ |__|    \___  >
+2026-10-02T16:45:29.0340846Z         \/      \/                  \/ 
+2026-10-02T16:45:29.0340873Z A P P   S E R V I C E   O N   L I N U X
+2026-10-02T16:45:29.0340889Z 
+2026-10-02T16:45:29.0340959Z Documentation    : http://aka.ms/webapp-linux
+2026-10-02T16:45:29.0340979Z NodeJS quickstart: https://aka.ms/node-qs
+2026-10-02T16:45:29.0340999Z NodeJS Version   : v24.18.0
+2026-10-02T16:45:29.0341019Z Instance Name    : lw0sdlwk000EGW
+2026-10-02T16:45:29.0341050Z Instance Id      : d93a6dd9adfe613e2d2fd01c1017210e715ace5b2f0f2d4f627a2b9b4f10608e
+2026-10-02T16:45:29.0341066Z 
+2026-10-02T16:45:29.0341085Z Note: Any data outside '/home' is not persisted
+WARNING: 2026-10-02T16:45:27.6780356Z Starting container: e487035ce50c_secureshare-3tr5rfce3svuo.
+2026-10-02T16:45:27.8285067Z Starting watchers and probes.
+2026-10-02T16:45:27.8306823Z Starting metrics collection.
+2026-10-02T16:45:27.8308893Z Container is running.
+2026-10-02T16:45:27.8310632Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container secureshare-3tr5rfce3svuo successfully created and is running., DetailsLevel: INFO
+2026-10-02T16:45:28.3230814Z Container start method finished after 6151 ms.
+2026-10-02T16:45:28.3232086Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container secureshare-3tr5rfce3svuo successfully created and is running., DetailsLevel: INFO
+2026-10-02T16:45:28.3232236Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+WARNING: 2026-10-02T16:45:41.4506818Z  * Starting OpenBSD Secure Shell server sshd
+2026-10-02T16:45:41.6095534Z    ...done.
+2026-10-02T16:45:41.6388731Z WEBSITES_INCLUDE_CLOUD_CERTS is not set to true.
+2026-10-02T16:45:41.7711397Z Updating certificates in /etc/ssl/certs...
+2026-10-02T16:45:41.2888880Z Fri Oct 2 16:45:41 UTC 2026 running .net core
+WARNING: 2026-10-02T16:45:41.4506818Z  * Starting OpenBSD Secure Shell server sshd
+2026-10-02T16:45:41.6095534Z    ...done.
+2026-10-02T16:45:41.6388731Z WEBSITES_INCLUDE_CLOUD_CERTS is not set to true.
+2026-10-02T16:45:41.7711397Z Updating certificates in /etc/ssl/certs...
+WARNING: 2026-10-02T16:45:46.8953026Z Startup : 04.45.46.795262
+2026-10-02T16:45:47.0232551Z Configure Services : 04.45.47.023063
+WARNING: 2026-10-02T16:45:49.3662384Z Configure : 04.45.49.366082
+2026-10-02T16:45:51.4969563Z Setting Up Routes : 04.45.51.496687
+2026-10-02T16:45:51.6264583Z Exiting Configure : 04.45.51.626332
+WARNING: 2026-10-02T16:45:52.6913013Z Hosting environment: Production
+2026-10-02T16:45:52.6921713Z Content root path: /opt/Kudu
+2026-10-02T16:45:52.6928976Z Now listening on: http://0.0.0.0:8181
+2026-10-02T16:45:52.7225993Z Application started. Press Ctrl+C to shut down.
+WARNING: 2026-10-02T16:46:12.3136399Z rehash: warning: skipping duplicate certificate in SSLcom-TLS-Root-2022-ECC.pem
+2026-10-02T16:46:12.3146357Z rehash: warning: skipping duplicate certificate in SSLcom-TLS-Root-2022-RSA.pem
+2026-10-02T16:46:12.9662689Z rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
+2026-10-02T16:46:13.0179029Z 4 added, 0 removed; done.
+2026-10-02T16:46:13.0378448Z Running hooks in /etc/ca-certificates/update.d...
+2026-10-02T16:46:13.0559742Z done.
+2026-10-02T16:46:13.0770463Z CA certificates copied and updated successfully.
+2026-10-02T16:46:13.2565479Z  * Starting periodic command scheduler cron
+2026-10-02T16:46:13.2565971Z    ...done.
+2026-10-02T16:46:13.5187275Z Found build manifest file at '/home/site/wwwroot/oryx-manifest.toml'. Deserializing it...
+2026-10-02T16:46:13.5303033Z Build Operation ID: 11990b10a84bbcfb
+WARNING: 2026-10-02T16:46:12.3136399Z rehash: warning: skipping duplicate certificate in SSLcom-TLS-Root-2022-ECC.pem
+2026-10-02T16:46:12.3146357Z rehash: warning: skipping duplicate certificate in SSLcom-TLS-Root-2022-RSA.pem
+2026-10-02T16:46:12.9662689Z rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
+2026-10-02T16:46:13.0179029Z 4 added, 0 removed; done.
+2026-10-02T16:46:13.0378448Z Running hooks in /etc/ca-certificates/update.d...
+2026-10-02T16:46:13.0559742Z done.
+2026-10-02T16:46:13.0770463Z CA certificates copied and updated successfully.
+2026-10-02T16:46:13.2565479Z  * Starting periodic command scheduler cron
+2026-10-02T16:46:13.2565971Z    ...done.
+2026-10-02T16:46:13.5187275Z Found build manifest file at '/home/site/wwwroot/oryx-manifest.toml'. Deserializing it...
+2026-10-02T16:46:13.5303033Z Build Operation ID: 11990b10a84bbcfb
+ERROR: Log stream interrupted. Exiting live log stream.

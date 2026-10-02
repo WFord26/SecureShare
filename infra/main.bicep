@@ -58,6 +58,10 @@ param linkTtlDays int = 7
 @minValue(1)
 param maxUploadMb int = 100
 
+@description('Request body deadline in seconds; upstream proxy timeouts still apply.')
+@minValue(60)
+param requestTimeoutSeconds int = 1800
+
 @description('Uploads are buffered in memory; worst case memory is maxConcurrentUploads * maxUploadMb.')
 @minValue(1)
 param maxConcurrentUploads int = 4
@@ -240,6 +244,7 @@ resource appSettings 'Microsoft.Web/sites/config@2023-12-01' = {
     STORAGE_CONTAINER: containerName
     SESSION_SECRET: sessionSecret
     MAX_UPLOAD_MB: string(maxUploadMb)
+    REQUEST_TIMEOUT_SECONDS: string(requestTimeoutSeconds)
     MAX_CONCURRENT_UPLOADS: string(maxConcurrentUploads)
     LINK_TTL_DAYS: string(linkTtlDays)
     SCAN_POLICY: scanPolicy

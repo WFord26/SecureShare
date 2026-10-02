@@ -319,6 +319,7 @@ For local development the tables are created on startup if they do not exist, us
 | `SESSION_SECRET` | required | Cookie signing secret, 32+ random characters |
 | `PORT` | `3000` | Listen port (App Service sets this) |
 | `MAX_UPLOAD_MB` | `100` | Upload size limit |
+| `REQUEST_TIMEOUT_SECONDS` | `1800` | Request body deadline in seconds (minimum 60); upstream proxy timeouts still apply |
 | `MAX_CONCURRENT_UPLOADS` | `4` | Cap on simultaneous in flight uploads (streamed to storage, not memory bound) |
 | `LINK_TTL_DAYS` | `7` | Link lifetime; keep in sync with the lifecycle policy `TTL_DAYS` |
 | `SCAN_POLICY` | `required` | `required` fails closed; `best-effort` serves after the grace period without a verdict |
