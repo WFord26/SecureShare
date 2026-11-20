@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Fixed MEDIUM severity: IP address validation flaw in `clientIp()` function
+  - Replaced permissive regex with Node.js built-in `isIPv4()` and `isIPv6()` validation
+  - Prevents invalid IPv4 addresses (octet > 255) from bypassing rate limiting
+  - Prevents audit log spoofing with crafted IP addresses
+- Fixed MEDIUM severity: Cookie parsing vulnerability in `getCookie()` function
+  - Improved cookie name comparison logic to prevent partial matches
+  - Enhanced protection against URL-encoded delimiter injection
+  - See [SECURITY-FIXES.md](SECURITY-FIXES.md) for detailed vulnerability analysis
+
 ---
 
 ## [1.1.0] - 2026-09-30
